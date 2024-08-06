@@ -1,13 +1,16 @@
 package miniproject.fintech.service;
 
 import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.repository.JpaMemberRepository;
 import miniproject.fintech.repository.MemberRepository;
 import miniproject.fintech.type.Grade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,21 +21,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+//데이터베이스와 관련된 테스트에 최적화되어 있으며, 데이터베이스 관련 빈만 로드
 class MemberServiceTest {
 
     @Autowired
-    private MemberService memberService;
+    private MemoryMemberService memberService;
+
     @Autowired
     private MemberRepository memberRepository;
 
     @BeforeEach
-    void beforeEach(){
+    void beforeEach() {
         System.out.println("beforeEach has been setup");
     }
 
     @Test
     @Transactional
-    void saveMember(){
+    void saveMember() {
         BankMember bankMember = BankMember.builder()
                 .name("아리")
                 .password("123456789")
@@ -68,11 +73,12 @@ class MemberServiceTest {
 
     @Test
     void findById() {
+        String uniqueAccountNumber = "acc" + System.currentTimeMillis(); //고유한 계좌 번호 생성
         BankMember bankMember = BankMember.builder()
                 .name("아리")
                 .password("123456789")
-                .accountNumber("abc123")
-                .id(2L)
+                .accountNumber(uniqueAccountNumber)
+                .id(1L)
                 .age(20)
                 .birth(LocalDate.of(1995, 6, 5))
                 .createdAt(LocalDateTime.now())
@@ -80,21 +86,23 @@ class MemberServiceTest {
                 .address("서울")
                 .build();
 
-        memberService.save(bankMember);
+        BankMember savedMember = memberService.save(bankMember);
 
-        BankMember findMember = memberService.findById(bankMember.getId());
-        assertThat(findMember.getId()).isEqualTo(2L);
+        Optional<BankMember> findMember = memberService.findById(savedMember.getId());
+
+        assertThat(findMember).isPresent();
+        assertThat(findMember.get()).isEqualTo(savedMember);
     }
 
     @Test
     @Transactional
-    void findAll(){
-        //given
+    void findAll() {
+        // given
+        String uniqueAccountNumber1 = "acc" + System.currentTimeMillis(); // 고유한 계좌 번호 생성
         BankMember bankMember1 = BankMember.builder()
                 .name("아리")
-                .password("123456789")
-                .accountNumber("abc123")
-                .id(2L)
+                .password("password1")
+                .accountNumber(uniqueAccountNumber1)
                 .age(20)
                 .birth(LocalDate.of(1995, 6, 5))
                 .createdAt(LocalDateTime.now())
@@ -102,11 +110,11 @@ class MemberServiceTest {
                 .address("서울")
                 .build();
 
+        String uniqueAccountNumber2 = "bcc" + System.currentTimeMillis(); // 또 다른 고유한 계좌 번호 생성
         BankMember bankMember2 = BankMember.builder()
                 .name("카카")
-                .password("987654321")
-                .accountNumber("cba321")
-                .id(3L)
+                .password("password2")
+                .accountNumber(uniqueAccountNumber2)
                 .age(22)
                 .birth(LocalDate.of(1995, 7, 5))
                 .createdAt(LocalDateTime.now())
@@ -114,15 +122,15 @@ class MemberServiceTest {
                 .address("서울")
                 .build();
 
-        memberService.save(bankMember1);
-        memberService.save(bankMember2);
+        BankMember saved1 = memberService.save(bankMember1);
+        BankMember saved2 = memberService.save(bankMember2);
 
-        //when
+        // when
         List<BankMember> bankMembers = memberService.findAll();
 
-        //then
+        // then
         assertThat(bankMembers).hasSize(2);
-        assertThat(bankMembers).contains(bankMember1, bankMember2);
+        assertThat(bankMembers).containsExactlyInAnyOrder(saved1, saved2);
     }
 
     @Test
@@ -133,7 +141,6 @@ class MemberServiceTest {
                 .name("아리")
                 .password("123456789")
                 .accountNumber("abc123")
-                .id(1L)
                 .age(20)
                 .birth(LocalDate.of(1995, 6, 5))
                 .createdAt(LocalDateTime.now())
@@ -156,7 +163,6 @@ class MemberServiceTest {
                 .name("끄로스")
                 .password("newPassword")
                 .accountNumber("a123456789")
-                .id(2L)
                 .age(20)
                 .birth(LocalDate.of(1990, 8, 10))
                 .createdAt(LocalDateTime.now())
@@ -186,11 +192,13 @@ class MemberServiceTest {
                 .address("서울")
                 .build();
         memberService.save(bankMember1);
+
+        // when
         memberService.delete(2L, "123456789");
 
+        // then
         assertThrows(IllegalArgumentException.class, () -> {
             memberService.findById(2L);
         }, "회원이 존재하지 않습니다.");
     }
-
 }
