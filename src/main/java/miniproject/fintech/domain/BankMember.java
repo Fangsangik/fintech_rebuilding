@@ -42,14 +42,11 @@ public class BankMember {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BankMember that = (BankMember) o;
-        return age == that.age && Objects.equals(id, that.id) && Objects.equals(name, that.name)
-                && Objects.equals(password, that.password) && Objects.equals(birth, that.birth)
-                && Objects.equals(createdAt, that.createdAt) && Objects.equals(deletedAt, that.deletedAt)
-                && grade == that.grade && Objects.equals(address, that.address);
+        return amount == that.amount && age == that.age && Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(accountNumber, that.accountNumber) && Objects.equals(password, that.password) && Objects.equals(birth, that.birth) && Objects.equals(createdAt, that.createdAt) && Objects.equals(deletedAt, that.deletedAt) && grade == that.grade && Objects.equals(address, that.address);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, password, age, birth, createdAt, deletedAt, grade, address);
+        return Objects.hash(id, name, accountNumber, amount, password, age, birth, createdAt, deletedAt, grade, address);
     }
 }
