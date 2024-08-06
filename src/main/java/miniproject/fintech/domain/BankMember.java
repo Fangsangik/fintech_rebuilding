@@ -22,6 +22,7 @@ public class BankMember {
     private String name;
 
     private String accountNumber;
+    private int amount;
 
     private String password;
     private int age;
