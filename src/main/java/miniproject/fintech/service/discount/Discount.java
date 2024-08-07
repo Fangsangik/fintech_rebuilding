@@ -1,4 +1,4 @@
-package miniproject.fintech.repository.discount;
+package miniproject.fintech.service.discount;
 
 import miniproject.fintech.domain.BankMember;
 import org.springframework.stereotype.Repository;
