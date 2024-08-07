@@ -1,4 +1,4 @@
-package miniproject.fintech.service;
+package miniproject.fintech.service.memberservice;
 
 import miniproject.fintech.domain.BankMember;
 import org.springframework.stereotype.Service;

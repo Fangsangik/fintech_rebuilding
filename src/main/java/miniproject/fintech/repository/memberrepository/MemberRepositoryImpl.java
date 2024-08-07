@@ -1,8 +1,7 @@
-package miniproject.fintech.repository;
+package miniproject.fintech.repository.memberrepository;
 
 import lombok.RequiredArgsConstructor;
 import miniproject.fintech.domain.BankMember;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 

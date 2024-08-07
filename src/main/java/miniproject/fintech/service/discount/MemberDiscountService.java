@@ -1,11 +1,11 @@
-package miniproject.fintech.service;
+package miniproject.fintech.service.discount;
 
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.type.Grade;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MemberDiscountService implements miniproject.fintech.repository.discount.Discount {
+public class MemberDiscountService implements Discount {
 
     private static final double DISCOUNT_RATE = 0.01;
     double total = 0;

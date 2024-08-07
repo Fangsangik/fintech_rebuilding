@@ -1,11 +1,13 @@
 package miniproject.fintech.domain;
 
-import jakarta.persistence.*;
 import lombok.*;
 import miniproject.fintech.type.Grade;
 
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Getter
@@ -16,7 +18,8 @@ import java.util.Objects;
 @NoArgsConstructor
 public class BankMember {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
@@ -36,17 +39,19 @@ public class BankMember {
 
     private String address;
 
+    @OneToMany(mappedBy = "bankMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Account> accounts = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BankMember that = (BankMember) o;
-        return amount == that.amount && age == that.age && Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(accountNumber, that.accountNumber) && Objects.equals(password, that.password) && Objects.equals(birth, that.birth) && Objects.equals(createdAt, that.createdAt) && Objects.equals(deletedAt, that.deletedAt) && grade == that.grade && Objects.equals(address, that.address);
+        return amount == that.amount && age == that.age && Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(accountNumber, that.accountNumber) && Objects.equals(password, that.password) && Objects.equals(birth, that.birth) && Objects.equals(createdAt, that.createdAt) && Objects.equals(deletedAt, that.deletedAt) && grade == that.grade && Objects.equals(address, that.address) && Objects.equals(accounts, that.accounts);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, accountNumber, amount, password, age, birth, createdAt, deletedAt, grade, address);
+        return Objects.hash(id, name, accountNumber, amount, password, age, birth, createdAt, deletedAt, grade, address, accounts);
     }
 }

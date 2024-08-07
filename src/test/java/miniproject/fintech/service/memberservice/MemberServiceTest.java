@@ -1,13 +1,13 @@
-package miniproject.fintech.service;
+package miniproject.fintech.service.memberservice;
 
 import miniproject.fintech.domain.BankMember;
-import miniproject.fintech.repository.JpaMemberRepository;
-import miniproject.fintech.repository.MemberRepository;
+import miniproject.fintech.repository.memberrepository.JpaMemberRepository;
+import miniproject.fintech.repository.memberrepository.MemberRepository;
+import miniproject.fintech.service.memberservice.MemoryMemberService;
 import miniproject.fintech.type.Grade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +28,7 @@ class MemberServiceTest {
     private MemoryMemberService memberService;
 
     @Autowired
-    private MemberRepository memberRepository;
+    private JpaMemberRepository memberRepository;
 
     @BeforeEach
     void beforeEach() {
@@ -49,7 +49,7 @@ class MemberServiceTest {
                 .address("서울")
                 .build();
 
-        BankMember saveMember = memberService.save(bankMember);
+        BankMember saveMember = memberRepository.save(bankMember);
         assertNotNull(saveMember.getId());
         assertThat(saveMember.getName()).isEqualTo("아리");
         assertThat(saveMember.getPassword()).isEqualTo("123456789");
@@ -65,7 +65,7 @@ class MemberServiceTest {
                 .address("서울")
                 .build();
 
-        BankMember saveMember2 = memberService.save(bankMember2);
+        BankMember saveMember2 = memberRepository.save(bankMember2);
         assertNotNull(saveMember2.getId());
         assertThat(saveMember2.getName()).isEqualTo("카카");
         assertThat(saveMember2.getPassword()).isEqualTo("987654321");
@@ -86,9 +86,9 @@ class MemberServiceTest {
                 .address("서울")
                 .build();
 
-        BankMember savedMember = memberService.save(bankMember);
+        BankMember savedMember = memberRepository.save(bankMember);
 
-        Optional<BankMember> findMember = memberService.findById(savedMember.getId());
+        Optional<BankMember> findMember = memberRepository.findById(savedMember.getId());
 
         assertThat(findMember).isPresent();
         assertThat(findMember.get()).isEqualTo(savedMember);
@@ -122,11 +122,11 @@ class MemberServiceTest {
                 .address("서울")
                 .build();
 
-        BankMember saved1 = memberService.save(bankMember1);
-        BankMember saved2 = memberService.save(bankMember2);
+        BankMember saved1 = memberRepository.save(bankMember1);
+        BankMember saved2 = memberRepository.save(bankMember2);
 
         // when
-        List<BankMember> bankMembers = memberService.findAll();
+        List<BankMember> bankMembers = memberRepository.findAll();
 
         // then
         assertThat(bankMembers).hasSize(2);
@@ -148,7 +148,7 @@ class MemberServiceTest {
                 .address("서울")
                 .build();
 
-        memberService.save(existBankMember);
+        memberRepository.save(existBankMember);
 
         // When: 중복된 ID로 새로운 회원 생성 시도
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -191,7 +191,7 @@ class MemberServiceTest {
                 .grade(Grade.NORMAL)
                 .address("서울")
                 .build();
-        memberService.save(bankMember1);
+        memberRepository.save(bankMember1);
 
         // when
         memberService.delete(2L, "123456789");

@@ -1,11 +1,10 @@
 package miniproject.fintech.transaction;
 
 import miniproject.fintech.domain.BankMember;
-import miniproject.fintech.service.MemberDiscountService;
+import miniproject.fintech.service.discount.MemberDiscountService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import static miniproject.fintech.type.Grade.*;
 import static org.junit.jupiter.api.Assertions.*;

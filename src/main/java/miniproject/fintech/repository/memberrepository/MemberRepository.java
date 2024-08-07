@@ -1,4 +1,4 @@
-package miniproject.fintech.repository;
+package miniproject.fintech.repository.memberrepository;
 
 import miniproject.fintech.domain.BankMember;
 import org.springframework.data.jpa.repository.JpaRepository;
