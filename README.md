@@ -12,11 +12,16 @@
 - 회원 탈퇴
   - testCode
   - troubleShooting
-    실행결과 -> h2 database에 값이 정확히 올라기지 않음
-    
+    실행결과 -> h2 database에 값이 정확히 올라기지 않음(o) / 해결 : (@Transaction)을 걸어놨었음..
+
+24/08/07
 #### [2] 계좌 생성 및 계좌 번호 중복 방지 
 - 계좌 조회
 - 계좌 삭제
+  - testCode
+  - troubleShooting
+    - delete문 진행시 NullPointException 발생   
+    
 - 계좌 생성시 제약
 
 #### [3] 은행 업무 서비스 
