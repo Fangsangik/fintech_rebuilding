@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Transactional
 //데이터베이스와 관련된 테스트에 최적화되어 있으며, 데이터베이스 관련 빈만 로드
 class MemberServiceTest {
 
@@ -36,7 +37,6 @@ class MemberServiceTest {
     }
 
     @Test
-    @Transactional
     void saveMember() {
         BankMember bankMember = BankMember.builder()
                 .name("아리")
@@ -95,7 +95,6 @@ class MemberServiceTest {
     }
 
     @Test
-    @Transactional
     void findAll() {
         // given
         String uniqueAccountNumber1 = "acc" + System.currentTimeMillis(); // 고유한 계좌 번호 생성
@@ -134,7 +133,6 @@ class MemberServiceTest {
     }
 
     @Test
-    @Transactional
     void create() {
         // Given: 기존 회원을 데이터베이스에 저장
         BankMember existBankMember = BankMember.builder()
