@@ -6,8 +6,14 @@ spring:
     password: 123
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    database-platform: org.hibernate.dialect.H2Dialect
+      ddl-auto: create  # 데이터베이스와 엔티티 스키마를 동기화
+    properties:
+      hibernate:
+        format_sql: true
   h2:
     console:
-      enabled: true
+      enabled: true  # H2 콘솔 활성화
+      path: /h2-console  # H2 콘솔 경로
+
+logging.level:
+  org.hibernate.SQL: debug
