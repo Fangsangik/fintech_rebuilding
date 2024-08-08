@@ -1,11 +1,9 @@
-package miniproject.fintech.repository.accountrepository;
+package miniproject.fintech.repository;
 
 import miniproject.fintech.domain.Account;
-import miniproject.fintech.domain.BankMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository

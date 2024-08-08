@@ -14,7 +14,7 @@ public interface MemberService {
 
     Optional<BankMember> create(Long id, String newAccount);
 
-    void delete(Long id, String password);
+    void deleteById(Long id, String password);
 
     BankMember updateMember(Long id, BankMember updatedMember);
 
