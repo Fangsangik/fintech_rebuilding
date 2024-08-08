@@ -1,15 +1,12 @@
 package miniproject.fintech.service.memberservice;
 
 import miniproject.fintech.domain.BankMember;
-import miniproject.fintech.repository.memberrepository.JpaMemberRepository;
 import miniproject.fintech.repository.memberrepository.MemberRepository;
-import miniproject.fintech.service.memberservice.MemoryMemberService;
 import miniproject.fintech.type.Grade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@Transactional
 //데이터베이스와 관련된 테스트에 최적화되어 있으며, 데이터베이스 관련 빈만 로드
 class MemberServiceTest {
 
@@ -29,7 +25,7 @@ class MemberServiceTest {
     private MemoryMemberService memberService;
 
     @Autowired
-    private JpaMemberRepository memberRepository;
+    private MemberRepository memberRepository;
 
     @BeforeEach
     void beforeEach() {

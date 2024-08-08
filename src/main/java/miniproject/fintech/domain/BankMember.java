@@ -23,14 +23,13 @@ public class BankMember {
     private Long id;
 
     private String name;
-
     private String accountNumber;
     private int amount;
-
+    private String email;
     private String password;
     private int age;
     private LocalDate birth;
-
+    private long curAmount;
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
 
@@ -47,11 +46,11 @@ public class BankMember {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BankMember that = (BankMember) o;
-        return amount == that.amount && age == that.age && Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(accountNumber, that.accountNumber) && Objects.equals(password, that.password) && Objects.equals(birth, that.birth) && Objects.equals(createdAt, that.createdAt) && Objects.equals(deletedAt, that.deletedAt) && grade == that.grade && Objects.equals(address, that.address) && Objects.equals(accounts, that.accounts);
+        return amount == that.amount && age == that.age && curAmount == that.curAmount && Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(accountNumber, that.accountNumber) && Objects.equals(password, that.password) && Objects.equals(birth, that.birth) && Objects.equals(createdAt, that.createdAt) && Objects.equals(deletedAt, that.deletedAt) && grade == that.grade && Objects.equals(address, that.address) && Objects.equals(accounts, that.accounts);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, accountNumber, amount, password, age, birth, createdAt, deletedAt, grade, address, accounts);
+        return Objects.hash(id, name, accountNumber, amount, password, age, birth, curAmount, createdAt, deletedAt, grade, address, accounts);
     }
 }

@@ -5,8 +5,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-
-@Service
 public interface MemberService {
     BankMember save(BankMember bankMember);
 
@@ -17,5 +15,7 @@ public interface MemberService {
     Optional<BankMember> create(Long id, String newAccount);
 
     void delete(Long id, String password);
+
+    BankMember updateMember(Long id, BankMember updatedMember);
 
 }
