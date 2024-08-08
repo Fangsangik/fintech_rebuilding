@@ -4,16 +4,21 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: 123
+  main:
+    allow-bean-definition-overriding: true
   jpa:
     hibernate:
       ddl-auto: create  # 데이터베이스와 엔티티 스키마를 동기화
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
   h2:
     console:
       enabled: true  # H2 콘솔 활성화
       path: /h2-console  # H2 콘솔 경로
 
-logging.level:
-  org.hibernate.SQL: debug
+logging:
+  level:
+    org.springframework: DEBUG
+    org.hibernate: DEBUG
