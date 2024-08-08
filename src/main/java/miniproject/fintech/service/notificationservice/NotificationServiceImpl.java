@@ -3,7 +3,6 @@ package miniproject.fintech.service.notificationservice;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Deposit;
-import miniproject.fintech.domain.Transaction;
 import miniproject.fintech.domain.Transfer;
 import miniproject.fintech.type.TransferStatus;
 import org.springframework.stereotype.Service;
