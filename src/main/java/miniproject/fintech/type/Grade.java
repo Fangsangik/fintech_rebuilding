@@ -7,7 +7,7 @@ public enum Grade {
     VIP("특별회원"),
     NORMAL("일반회원");
 
-    private String memberGrade;
+    private final String memberGrade;
 
     Grade(String memberGrade) {
         this.memberGrade = memberGrade;
