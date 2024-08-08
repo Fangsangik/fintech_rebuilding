@@ -41,6 +41,10 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionDescription transactionDescription;
 
+    @ManyToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
+
     private double fee;
     private String message;
     private String counterpartyInfo;
