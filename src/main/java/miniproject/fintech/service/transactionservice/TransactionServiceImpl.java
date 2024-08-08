@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.*;
 import miniproject.fintech.dto.TransactionDto;
-import miniproject.fintech.repository.transactionrepository.TransactionRepository;
+import miniproject.fintech.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
