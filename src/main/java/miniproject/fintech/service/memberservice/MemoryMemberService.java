@@ -4,12 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
-import miniproject.fintech.repository.memberrepository.MemberRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import miniproject.fintech.repository.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +19,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemoryMemberService implements MemberService{
 
-    private final @Lazy MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
 
     @Override
     public BankMember save(BankMember bankMember){
@@ -68,16 +65,24 @@ public class MemoryMemberService implements MemberService{
     @Override
     @Transactional
     //회원 탈퇴
-    public void delete(Long id, String password) {
+    public void deleteById(Long id, String password) {
         BankMember bankMember = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 입니다."));
 
         deleteValidation(id, password, bankMember);
     }
 
+    private void deleteValidation(Long id, String password, BankMember bankMember) {
+        if (bankMember.getPassword().equals(password)){
+            memberRepository.deleteById(id);
+        } else {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+    }
+
     @Override
     @Transactional
-    public BankMember updateMember(Long id, BankMember updatedMember) {
+    public BankMember updateMember(Long id ,BankMember updatedMember) {
         BankMember existingMember = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
@@ -108,14 +113,6 @@ public class MemoryMemberService implements MemberService{
     }
 
 
-
-    private void deleteValidation(Long id, String password, BankMember bankMember) {
-        if (bankMember.getPassword().equals(password)){
-            memberRepository.deletedById(id);
-        } else {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-    }
 
     public Page<BankMember> findAll(Pageable pageable) {
         return memberRepository.findAll(pageable);
