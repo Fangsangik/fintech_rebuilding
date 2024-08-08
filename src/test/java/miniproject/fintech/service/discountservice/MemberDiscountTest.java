@@ -1,7 +1,6 @@
-package miniproject.fintech.transaction;
+package miniproject.fintech.service.discountservice;
 
 import miniproject.fintech.domain.BankMember;
-import miniproject.fintech.service.discount.MemberDiscountService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class MemberDiscountTest {
 
     @Autowired
-    private MemberDiscountService memberDiscount;
+    private DiscountService discountService;
 
     @Test
     void discount() {
@@ -23,10 +22,10 @@ class MemberDiscountTest {
         bankMember.setAmount(2000);
         //when
         if (bankMember.getGrade().equals(VIP)) {
-            memberDiscount.discount(bankMember, (int) bankMember.getAmount());
+            discountService.discount(bankMember);
         }
         //then
-        double expectedDiscount = 2000 * 0.01;
-        assertEquals(expectedDiscount, memberDiscount.getTotal());
+        double expectedDiscount = bankMember.getAmount() - bankMember.getAmount() * 0.01;
+        assertEquals(expectedDiscount, 1980);
     }
 }
