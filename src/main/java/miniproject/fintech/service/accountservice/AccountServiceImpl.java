@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
-import miniproject.fintech.repository.accountrepository.AccountRepository;
-import miniproject.fintech.repository.memberrepository.MemberRepository;
-import org.springframework.stereotype.Component;
+import miniproject.fintech.repository.AccountRepository;
+import miniproject.fintech.repository.MemberRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +22,7 @@ public class AccountServiceImpl implements AccountService {
 
     private final MemberRepository memberRepository;
     private final AccountRepository accountRepository;
+
 
     @Override
     public Account save(Account account) {
@@ -53,9 +54,14 @@ public class AccountServiceImpl implements AccountService {
         }
 
         account.setBankMember(existingMember);
+
         Account savedAccount = accountRepository.save(account);
 
-        existingMember.getAccounts().add(account);
+        // accounts 리스트가 null일 경우 빈 리스트로 초기화
+        if (existingMember.getAccounts() == null) {
+            existingMember.setAccounts(new ArrayList<>());
+        }
+        existingMember.getAccounts().add(savedAccount);
         memberRepository.save(existingMember);
 
         return savedAccount;

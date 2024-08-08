@@ -2,8 +2,9 @@ package miniproject.fintech.service.accountservice;
 
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
-import miniproject.fintech.repository.accountrepository.AccountRepository;
-import miniproject.fintech.repository.memberrepository.MemberRepository;
+import miniproject.fintech.repository.AccountRepository;
+import miniproject.fintech.repository.MemberRepository;
+
 import miniproject.fintech.type.AccountStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,26 +86,30 @@ class AccountServiceImplTest {
 
     @Test
     void create() {
+        // Given: BankMember와 Account 객체 생성
         BankMember bankMember = BankMember.builder()
                 .name("벨링엄")
                 .build();
         memberRepository.save(bankMember);
 
         Account account = Account.builder()
-                .accountNumber(ACCOUNT_NUMBER)
+                .accountNumber("ACCOUNT_NUMBER") // 적절한 ACCOUNT_NUMBER 값으로 수정
                 .createdAt(LocalDateTime.now())
-                .accountStatus(AccountStatus.RESISTER)
+                .accountStatus(AccountStatus.RESISTER) // 올바른 AccountStatus 값으로 수정
                 .build();
 
+        // When: Account를 생성하고 BankMember에 추가
         accountService.create(bankMember, account);
 
+        // Then: BankMember가 저장되었는지 확인
         BankMember updatedBankMember = memberRepository.findById(bankMember.getId())
                 .orElseThrow(() -> new IllegalArgumentException("BankMember does not exist"));
 
         assertThat(updatedBankMember.getAccounts())
                 .extracting(Account::getAccountNumber)
-                .contains(ACCOUNT_NUMBER);
+                .contains("ACCOUNT_NUMBER"); // ACCOUNT_NUMBER 값으로 수정
 
+        // Also check if the Account is saved
         Optional<Account> savedAccount = accountRepository.findById(account.getId());
         assertThat(savedAccount).isPresent();
         assertThat(savedAccount.get()).isEqualTo(account);
