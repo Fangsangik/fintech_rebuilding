@@ -38,19 +38,39 @@ public class BankMember {
 
     private String address;
 
-    @OneToMany(mappedBy = "bankMember", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Account> accounts = new ArrayList<>();
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "bankMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Account> accounts = new ArrayList<>(); // 빈 리스트로 초기화
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         BankMember that = (BankMember) o;
-        return amount == that.amount && age == that.age && curAmount == that.curAmount && Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(accountNumber, that.accountNumber) && Objects.equals(password, that.password) && Objects.equals(birth, that.birth) && Objects.equals(createdAt, that.createdAt) && Objects.equals(deletedAt, that.deletedAt) && grade == that.grade && Objects.equals(address, that.address) && Objects.equals(accounts, that.accounts);
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && grade == that.grade;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, accountNumber, amount, password, age, birth, curAmount, createdAt, deletedAt, grade, address, accounts);
+        return Objects.hash(id, name, grade);
+    }
+
+    @Override
+    public String toString() {
+        return "BankMember{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", accountNumber='" + accountNumber + '\'' +
+                ", amount=" + amount +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", age=" + age +
+                ", birth=" + birth +
+                ", curAmount=" + curAmount +
+                ", createdAt=" + createdAt +
+                ", deletedAt=" + deletedAt +
+                ", grade=" + grade +
+                ", address='" + address + '\'' +
+                ", accounts=" + accounts +
+                '}';
     }
 }
