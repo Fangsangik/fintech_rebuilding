@@ -1,65 +1,56 @@
 package miniproject.fintech.service.accountservice;
 
-import miniproject.fintech.config.AccountConfig;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
-import miniproject.fintech.repository.accountrepository.JpaAccountRepository;
-import miniproject.fintech.repository.memberrepository.JpaMemberRepository;
+import miniproject.fintech.repository.accountrepository.AccountRepository;
+import miniproject.fintech.repository.memberrepository.MemberRepository;
 import miniproject.fintech.type.AccountStatus;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
 class AccountServiceImplTest {
 
     @Autowired
-    private JpaAccountRepository accountRepository;
+    private AccountRepository accountRepository;
 
     @Autowired
-    private JpaMemberRepository memberRepository;
+    private MemberRepository memberRepository;
 
     @Autowired
     private AccountService accountService;
 
+    private static final String ACCOUNT_NUMBER = String.valueOf(UUID.randomUUID());
+
     @Test
     void save() {
-        long accountNumber = System.currentTimeMillis();
         Account account = Account.builder()
-                .accountNumber(accountNumber)
-                .bankName("신한은행")
+                .accountNumber(ACCOUNT_NUMBER)
                 .createdAt(LocalDateTime.now())
-                .password("123456789")
                 .accountStatus(AccountStatus.RESISTER)
                 .build();
 
         Account saveAccount = accountRepository.save(account);
         assertThat(saveAccount).isNotNull();
-        assertThat(saveAccount.getBankName()).isEqualTo("신한은행");
-        assertThat(saveAccount.getAccountNumber()).isEqualTo(accountNumber);
-        assertThat(saveAccount.getPassword()).isEqualTo("123456789");
+        assertThat(saveAccount.getAccountNumber()).isEqualTo(ACCOUNT_NUMBER);
     }
 
     @Test
     void findById() {
-        long accountNumber = System.currentTimeMillis();
         Account account = Account.builder()
-                .accountNumber(accountNumber)
-                .bankName("신한은행")
+                .accountNumber(ACCOUNT_NUMBER)
                 .createdAt(LocalDateTime.now())
-                .password("123456789")
                 .accountStatus(AccountStatus.RESISTER)
                 .build();
 
@@ -72,21 +63,15 @@ class AccountServiceImplTest {
 
     @Test
     void findAll() {
-        long accountNumber1 = System.currentTimeMillis();
         Account account1 = Account.builder()
-                .accountNumber(accountNumber1)
-                .bankName("신한은행")
+                .accountNumber(ACCOUNT_NUMBER)
                 .createdAt(LocalDateTime.now())
-                .password("123456789")
                 .accountStatus(AccountStatus.RESISTER)
                 .build();
 
-        long accountNumber2 = System.currentTimeMillis();
         Account account2 = Account.builder()
-                .accountNumber(accountNumber2)
-                .bankName("국민은행")
+                .accountNumber(ACCOUNT_NUMBER)
                 .createdAt(LocalDateTime.now())
-                .password("5555555")
                 .accountStatus(AccountStatus.RESISTER)
                 .build();
 
@@ -106,12 +91,9 @@ class AccountServiceImplTest {
                 .build();
         memberRepository.save(bankMember);
 
-        long accountNumber = System.currentTimeMillis();
         Account account = Account.builder()
-                .accountNumber(accountNumber)
-                .bankName("신한은행")
+                .accountNumber(ACCOUNT_NUMBER)
                 .createdAt(LocalDateTime.now())
-                .password("123456789")
                 .accountStatus(AccountStatus.RESISTER)
                 .build();
 
@@ -122,7 +104,7 @@ class AccountServiceImplTest {
 
         assertThat(updatedBankMember.getAccounts())
                 .extracting(Account::getAccountNumber)
-                .contains(accountNumber);
+                .contains(ACCOUNT_NUMBER);
 
         Optional<Account> savedAccount = accountRepository.findById(account.getId());
         assertThat(savedAccount).isPresent();
@@ -138,12 +120,8 @@ class AccountServiceImplTest {
         memberRepository.save(bankMember);
 
         // Account를 생성하고 저장합니다.
-        long accountNumber = System.currentTimeMillis();
         Account account = Account.builder()
-                .accountNumber(accountNumber)
-                .bankName("신한은행")
                 .createdAt(LocalDateTime.now())
-                .password("123456789")
                 .accountStatus(AccountStatus.RESISTER)
                 .bankMember(bankMember)  // BankMember와 연결합니다.
                 .build();
@@ -156,7 +134,7 @@ class AccountServiceImplTest {
                 .orElseThrow(() -> new IllegalArgumentException("BankMember does not exist"));
 
         // Account 삭제
-        accountService.delete(bankMember, accountNumber);
+        accountService.delete(bankMember.getId());
 
         // Account가 삭제되었는지 확인합니다.
         Optional<Account> deletedAccount = accountRepository.findById(account.getId());
@@ -168,6 +146,6 @@ class AccountServiceImplTest {
 
         assertThat(updatedBankMember.getAccounts())
                 .extracting(Account::getAccountNumber)
-                .doesNotContain(accountNumber);  // 계좌 목록에 삭제된 계좌가 없어야 합니다.
+                .doesNotContain(ACCOUNT_NUMBER);  // 계좌 목록에 삭제된 계좌가 없어야 합니다.
     }
 }

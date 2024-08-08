@@ -5,7 +5,7 @@ import miniproject.fintech.type.AccountStatus;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.*;
 
 @Getter
 @Setter
@@ -17,31 +17,25 @@ public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private long accountNumber;
-    private String bankName;
-    private String password;
-    private long leftAmount;
+
+    private String accountNumber;
+    private long amount;
+    private LocalDateTime createdAt;
+    private LocalDateTime deletedAt;
 
     @ManyToOne
-    @JoinColumn(name = "bank_member")
+    @JoinColumn(name = "bank_member_id")
     private BankMember bankMember;
 
     @Enumerated(EnumType.STRING)
     private AccountStatus accountStatus;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime deletedAt;
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Deposit> deposits = new HashSet<>();
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Account account = (Account) o;
-        return accountNumber == account.accountNumber && leftAmount == account.leftAmount && Objects.equals(id, account.id) && Objects.equals(bankName, account.bankName) && Objects.equals(password, account.password) && Objects.equals(bankMember, account.bankMember) && accountStatus == account.accountStatus && Objects.equals(createdAt, account.createdAt) && Objects.equals(deletedAt, account.deletedAt);
-    }
+    @OneToMany(mappedBy = "sourceAccount", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Transfer> sentTransfers = new HashSet<>();
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, accountNumber, bankName, password, leftAmount, bankMember, accountStatus, createdAt, deletedAt);
-    }
+    @OneToMany(mappedBy = "destinationAccount", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Transfer> receivedTransfers = new HashSet<>();
 }
