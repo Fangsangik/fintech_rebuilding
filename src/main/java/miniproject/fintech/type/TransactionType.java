@@ -6,7 +6,7 @@ public enum TransactionType {
     DEPOSIT("입금"),
     RECEIVE("받기");
 
-    private String transactionMessage;
+    private final String transactionMessage;
 
     TransactionType(String transactionMessage) {
         this.transactionMessage = transactionMessage;
