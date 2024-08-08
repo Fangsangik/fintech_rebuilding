@@ -6,19 +6,16 @@ spring:
     password: 123
   main:
     allow-bean-definition-overriding: true
+    allow-circular-references: true
   jpa:
     hibernate:
-      ddl-auto: create  # 데이터베이스와 엔티티 스키마를 동기화
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-        format_sql: true
+      ddl-auto: create
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.H2Dialect
+          format_sql: true
+          default_schema: public # 또는 원하는 스키마 이름
   h2:
     console:
-      enabled: true  # H2 콘솔 활성화
-      path: /h2-console  # H2 콘솔 경로
-
-logging:
-  level:
-    org.springframework: DEBUG
-    org.hibernate: DEBUG
+      enabled: true
+      path: /h2-console
