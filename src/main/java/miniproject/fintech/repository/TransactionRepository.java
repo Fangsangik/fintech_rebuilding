@@ -1,4 +1,4 @@
-package miniproject.fintech.repository.transactionrepository;
+package miniproject.fintech.repository;
 
 import miniproject.fintech.domain.Transaction;
 import org.springframework.data.domain.Page;
@@ -9,10 +9,10 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-
+@Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
     Page<Transaction> findByTransactedAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 
-    List<Transaction> findBySourceAccountId(Long accountId);
+    List<Transaction> findByAccount_Id(Long accountId);
 }
