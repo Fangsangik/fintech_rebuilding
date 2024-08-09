@@ -1,6 +1,7 @@
 package miniproject.fintech.repository;
 
 import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.dto.BankMemberDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,5 +17,7 @@ public interface MemberRepository extends JpaRepository<BankMember, Long>{
     Optional<BankMember> findByAccountNumber(String accountNumber);
 
     Page<BankMember> findAll(Pageable pageable);
+
+    BankMember findByEmail(String email);
 
 }

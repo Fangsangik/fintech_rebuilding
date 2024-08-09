@@ -15,4 +15,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     Page<Transaction> findByTransactedAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 
     List<Transaction> findByAccount_Id(Long accountId);
+
+    boolean existsById(Long transactionId);
 }

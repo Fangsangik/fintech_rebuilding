@@ -13,7 +13,7 @@ import java.util.Objects;
 @Getter
 @Setter //테스트 위함
 @Entity
-@Builder
+@Builder (toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class BankMember {
@@ -38,8 +38,11 @@ public class BankMember {
 
     private String address;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "bankMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "bankMember", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Account> accounts = new ArrayList<>(); // 빈 리스트로 초기화
+
+    @OneToMany(mappedBy = "bankMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Transaction> transactions = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {

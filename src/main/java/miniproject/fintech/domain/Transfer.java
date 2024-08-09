@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Transfer {
 
     @Id
@@ -18,11 +21,11 @@ public class Transfer {
     private long transferAmount;
     private LocalDateTime transferAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_account_id")
     private Account sourceAccount;
 
-    @ManyToOne
+    @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "destination_account_id")
     private Account destinationAccount;
 

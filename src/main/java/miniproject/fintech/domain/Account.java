@@ -12,7 +12,7 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Builder
+@Builder(toBuilder = true)
 public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +23,7 @@ public class Account {
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
 
-    @ManyToOne
+    @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_member_id")
     private BankMember bankMember;
 

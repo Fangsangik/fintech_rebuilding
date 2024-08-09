@@ -10,7 +10,7 @@ import miniproject.fintech.type.TransactionType;
 import java.time.LocalDateTime;
 
 @Getter
-@Builder
+@Builder (toBuilder = true) //setter 사용을 줄여보기 위해 사용
 @AllArgsConstructor
 public class TransactionDto {
 

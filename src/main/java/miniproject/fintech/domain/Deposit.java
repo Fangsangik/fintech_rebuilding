@@ -1,8 +1,6 @@
 package miniproject.fintech.domain;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import miniproject.fintech.type.*;
 
 import javax.persistence.*;
@@ -11,6 +9,9 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 //단일 계좌 입금
 public class Deposit {
 
@@ -21,7 +22,7 @@ public class Deposit {
     private long depositAmount;
     private LocalDateTime depositAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
     private Account account;
 

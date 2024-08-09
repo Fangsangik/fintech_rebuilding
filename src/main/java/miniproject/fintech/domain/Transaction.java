@@ -1,9 +1,6 @@
 package miniproject.fintech.domain;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import miniproject.fintech.type.Grade;
 import miniproject.fintech.type.TransactionDescription;
 import miniproject.fintech.type.TransactionStatus;
@@ -14,7 +11,9 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true) //setter 사용을 줄여보기 위해 사용
 @Entity
 public class Transaction {
 
@@ -34,6 +33,10 @@ public class Transaction {
     private long curAmount;
     private String referenceNumber;
     private String currency;
+
+    @ManyToOne (fetch = FetchType.LAZY)
+    @JoinColumn(name = "bank_member_id", nullable = false)
+    private BankMember bankMember;
 
     @Enumerated(EnumType.STRING)
     private Grade grade;

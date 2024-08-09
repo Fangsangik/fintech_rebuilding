@@ -1,14 +1,15 @@
 package miniproject.fintech.service.memberservice;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.repository.MemberRepository;
 import miniproject.fintech.type.Grade;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Transactional
 //데이터베이스와 관련된 테스트에 최적화되어 있으며, 데이터베이스 관련 빈만 로드
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 class MemberServiceTest {
 
     @Autowired
@@ -34,7 +37,7 @@ class MemberServiceTest {
 
     @BeforeEach
     void beforeEach() {
-        System.out.println("beforeEach has been setup");
+        memberRepository.deleteAll();
     }
 
     @Test
@@ -72,34 +75,45 @@ class MemberServiceTest {
         assertThat(saveMember2.getPassword()).isEqualTo("987654321");
     }
 
+
     @Test
-    void findById() {
-        String uniqueAccountNumber = "acc" + System.currentTimeMillis(); // 고유한 계좌 번호 생성
+    void findById_ValidId_ShouldReturnBankMember() {
         BankMember bankMember = BankMember.builder()
-                .name("아리")
-                .password("123456789")
-                .accountNumber(uniqueAccountNumber)
-                .id(1L)
-                .age(20)
-                .birth(LocalDate.of(1995, 6, 5))
-                .createdAt(LocalDateTime.now().withNano(0))
-                .grade(Grade.NORMAL)
-                .accounts(null) // accounts를 null로 설정
-                .address("서울")
+                .name("John Doe")
+                .email("john.doe@example.com")
+                .password("securepassword")
+                .address("123 Main St")
+                .createdAt(LocalDateTime.now())
+                .accountNumber("1234567890")
                 .build();
 
         BankMember savedMember = memberRepository.save(bankMember);
 
-        Optional<BankMember> findMember = memberRepository.findById(savedMember.getId());
+        Optional<BankMember> foundMember = memberService.findById(savedMember);
 
-        assertThat(findMember).isPresent();
-        BankMember foundMember = findMember.get();
+        assertThat(foundMember).isPresent();
+        assertThat(foundMember.get()).usingRecursiveComparison().isEqualTo(savedMember);
+    }
 
-        // accounts 필드가 빈 리스트인지 확인
-        assertThat(foundMember.getAccounts()).isEmpty();
+    @Test
+    void findById_InvalidId_ShouldReturnEmpty() {
+        BankMember nonExistentMember = BankMember.builder()
+                .id(999L)
+                .build();
 
-        // 다른 필드 비교
-        assertThat(foundMember).usingRecursiveComparison().ignoringFields("accounts").isEqualTo(savedMember);
+        Optional<BankMember> foundMember = memberService.findById(nonExistentMember);
+
+        assertThat(foundMember).isEmpty();
+    }
+
+    @Test
+    void findById_InvalidBankMember_ShouldThrowException() {
+        //given
+        BankMember invalidMember = BankMember.builder()
+                .id(null)
+                .build();
+
+        assertThrows(IllegalArgumentException.class, () -> memberService.findById(invalidMember));
     }
 
     @Test
@@ -141,47 +155,25 @@ class MemberServiceTest {
     }
 
     @Test
-    void create() {
-        // Given: 기존 회원을 데이터베이스에 저장
-        BankMember existBankMember = BankMember.builder()
-                .name("아리")
-                .password("123456789")
-                .accountNumber("abc123")
-                .age(20)
-                .birth(LocalDate.of(1995, 6, 5))
+    void createBankMember() {
+        // Given: BankMemberDto 객체를 생성
+        BankMemberDto bankMemberDto = BankMemberDto.builder()
+                .name("John Doe")
+                .email("john.doe@example.com")
+                .password("securepassword")
+                .address("123 Main St")
                 .createdAt(LocalDateTime.now())
-                .grade(Grade.NORMAL)
-                .address("서울")
+                .accountNumber("1234567890")
                 .build();
 
-        memberRepository.save(existBankMember);
+        // When: createBankMember 메서드를 호출하여 새 BankMember를 생성
+        BankMember createdMember = memberService.createBankMember(bankMemberDto, null);
 
-        // When: 중복된 ID로 새로운 회원 생성 시도
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            memberService.create(1L, "123456789");
-        });
-
-        // Then: 예외 메시지 검증
-        assertThat(exception.getMessage()).isEqualTo("중복된 회원입니다.");
-
-        // When: 중복되지 않는 ID로 새로운 회원 생성
-        BankMember newBankMember = BankMember.builder()
-                .name("끄로스")
-                .password("newPassword")
-                .accountNumber("a123456789")
-                .age(20)
-                .birth(LocalDate.of(1990, 8, 10))
-                .createdAt(LocalDateTime.now())
-                .grade(Grade.NORMAL)
-                .address("서울")
-                .build();
-        Optional<BankMember> createdBankUser = memberService.create(2L, "a123456789");
-
-        // Then: 새로운 회원이 성공적으로 생성되었는지 검증
-        assertThat(createdBankUser).isPresent();
-        assertThat(createdBankUser.get().getId()).isEqualTo(2L);
-        assertThat(createdBankUser.get().getAccountNumber()).isEqualTo("a123456789");
-
+        // Then: 생성된 BankMember가 null이 아니고, BankMemberDto의 필드와 일치해야 함
+        assertNotNull(createdMember, "The created BankMember should not be null");
+        assertEquals(bankMemberDto.getName(), createdMember.getName(), "The names should match");
+        assertEquals(bankMemberDto.getEmail(), createdMember.getEmail(), "The emails should match");
+        assertEquals(bankMemberDto.getAccountNumber(), createdMember.getAccountNumber(), "The account numbers should match");
     }
 
     /**
@@ -191,24 +183,25 @@ class MemberServiceTest {
     @Test
     @Transactional
     void delete() {
-        BankMember bankMember1 = BankMember.builder()
-                .name("아리")
-                .password("123456789")
-                .accountNumber("abc123")
-                .id(2L)
-                .age(20)
-                .birth(LocalDate.of(1995, 6, 5))
+        // Given: 기존 회원을 데이터베이스에 저장
+        BankMemberDto bankMemberDto = BankMemberDto.builder()
+                .name("John Doe")
+                .email("john.doe@example.com")
+                .password("securepassword")
+                .address("123 Main St")
                 .createdAt(LocalDateTime.now())
-                .grade(Grade.NORMAL)
-                .address("서울")
+                .accountNumber("1234567890")
                 .build();
-        memberRepository.save(bankMember1);
 
-        // when
-        memberService.deleteById(2L, "123456789");
+        BankMember rst = memberService.createBankMember(bankMemberDto, null);
+        Long memberId = rst.getId();
 
-        // then
-        Optional<BankMember> result = memberRepository.findById(2L);
-        assertThat(result).isEmpty();
+        Exception exception = assertThrows(IllegalArgumentException.class,
+                () -> {
+                    memberService.deleteById(memberId, "wrongpassword");
+                });
+
+        assertEquals("비밀번호가 일치하지 않습니다.", exception.getMessage());
+
     }
 }

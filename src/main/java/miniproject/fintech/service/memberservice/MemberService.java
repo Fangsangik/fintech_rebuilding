@@ -1,6 +1,7 @@
 package miniproject.fintech.service.memberservice;
 
 import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.dto.BankMemberDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,12 +11,12 @@ public interface MemberService {
 
     List<BankMember> findAll();
 
-    Optional<BankMember> findById(Long id);
+    Optional<BankMember> findById(BankMember bankMember);
 
-    Optional<BankMember> create(Long id, String newAccount);
+    BankMember createBankMember(BankMemberDto bankMemberDto, BankMember bankMember);
 
     void deleteById(Long id, String password);
 
-    BankMember updateMember(Long id, BankMember updatedMember);
+    BankMember updateMember(BankMember bankMember, BankMemberDto updatedMemberDto);
 
 }

@@ -4,12 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.domain.Transaction;
+import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.repository.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,9 +30,10 @@ public class MemoryMemberService implements MemberService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     // ID로 BankMember 찾기 메서드
-    public Optional<BankMember> findById(Long id) {
-        return memberRepository.findById(id);
+    public Optional<BankMember> findById(BankMember bankMember) {
+        return memberRepository.findById(bankMember.getId());
     }
 
     @Override
@@ -41,25 +45,36 @@ public class MemoryMemberService implements MemberService{
     @Override
     @Transactional
     //신규회원 생성
-    public Optional<BankMember> create(Long id, String newAccount) {
-        Optional<BankMember> existingBankMember = memberRepository.findById(id); //기존회원
+    public BankMember createBankMember(BankMemberDto bankMemberDto, BankMember bankMember) {
+        validationCreateNewMember(bankMemberDto);
 
-        BankMember newBankMember = validationCreateNewMember(id, newAccount, existingBankMember);
+        BankMember newBankMember = BankMember.builder()
+                .name(bankMemberDto.getName())
+                .email(bankMemberDto.getEmail())
+                .password(bankMemberDto.getPassword())
+                .address(bankMemberDto.getAddress())
+                .createdAt(bankMemberDto.getCreatedAt())
+                .accountNumber(bankMemberDto.getAccountNumber())
+                .build();
 
-        return Optional.of(memberRepository.save(newBankMember));
+
+        return memberRepository.save(newBankMember);
     }
 
 
 
-    private static BankMember validationCreateNewMember(Long id, String newAccount, Optional<BankMember> existingBankMember) {
-        if (existingBankMember.isPresent()){
-            throw new IllegalArgumentException("중복된 회원입니다.");
+    private void validationCreateNewMember(BankMemberDto bankMemberDto) {
+        // 이메일 또는 계좌 번호로 중복 검사 수행
+        Optional<BankMember> existingBankMember =
+                Optional.ofNullable(memberRepository.findByEmail(bankMemberDto.getEmail()));
+        if (existingBankMember.isPresent()) {
+            throw new IllegalArgumentException("중복된 이메일입니다.");
         }
 
-        BankMember newBankMember = new BankMember();// 신규회원
-        newBankMember.setId(id);
-        newBankMember.setAccountNumber(newAccount);
-        return newBankMember;
+        Optional<BankMember> existingBankMemberByAccountNumber = memberRepository.findByAccountNumber(bankMemberDto.getAccountNumber());
+        if (existingBankMemberByAccountNumber.isPresent()) {
+            throw new IllegalArgumentException("중복된 계좌 번호입니다.");
+        }
     }
 
     @Override
@@ -82,29 +97,33 @@ public class MemoryMemberService implements MemberService{
 
     @Override
     @Transactional
-    public BankMember updateMember(Long id ,BankMember updatedMember) {
-        BankMember existingMember = memberRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+    public BankMember updateMember(BankMember bankMember, BankMemberDto updatedMemberDto) {
+        BankMember existingMember = validationOfId(bankMember.getId(), bankMember);
 
+        BankMember updatedBankmember = existingMember.toBuilder()
+                .age(updatedMemberDto.getAge())
+                .name(updatedMemberDto.getName())
+                .address(updatedMemberDto.getAddress())
+                .email(updatedMemberDto.getEmail())
+                .build();
 
-        /**
-         리펙토링 할때 손 보자... 코드 중복이 너무 많다.
-         */
-        if (updatedMember.getName() != null) {
-            existingMember.setName(updatedMember.getName());
-        }
-
-        if (updatedMember.getPassword() != null) {
-            existingMember.setPassword(updatedMember.getPassword());
-        }
-
-        if (updatedMember.getEmail() != null) {
-            existingMember.setEmail(updatedMember.getEmail());
-        }
-
-        return memberRepository.save(existingMember);
+        return memberRepository.save(updatedBankmember);
     }
 
+    private BankMember validationOfId(Long bankMemberId, BankMember bankMember) {
+        if (bankMemberId == null) {
+            throw new IllegalArgumentException("잘못된 값 입니다.");
+        }
+
+        BankMember existingBankMember = memberRepository.findById(bankMemberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다"));
+
+        if (!existingBankMember.getId().equals(bankMember.getId())) {
+            throw new IllegalArgumentException("잘못된 접근입니다.");
+        }
+
+        return existingBankMember;
+    }
     public List<Account> findAccountByMemberId (Long id) {
         BankMember member = memberRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
