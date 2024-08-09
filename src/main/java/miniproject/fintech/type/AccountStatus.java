@@ -1,7 +1,7 @@
 package miniproject.fintech.type;
 
 public enum AccountStatus {
-    RESISTER("회원"),
+    REGISTER("회원"),
     UNREGISTER("미회원가입"),
 
     ACTIVE ("활성"),

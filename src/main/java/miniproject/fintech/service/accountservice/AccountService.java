@@ -2,6 +2,7 @@ package miniproject.fintech.service.accountservice;
 
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.dto.AccountDto;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -16,11 +17,11 @@ public interface AccountService {
 
     List<Account> findAll();
 
-    Account create(BankMember bankMember, Account account);
+    Account createdByBankMember(BankMember bankMember, AccountDto accountDto);
 
     void delete(Long accountId);
 
-    Account updateAccount(Long id, Account updatedAccount);
+    Account updateAccount(Long accountId, AccountDto updatedAccount);
 
     long getAccountBalance(Long id);
 }

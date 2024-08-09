@@ -4,16 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.dto.AccountDto;
 import miniproject.fintech.repository.AccountRepository;
 import miniproject.fintech.repository.MemberRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static miniproject.fintech.type.AccountStatus.*;
 
 @Slf4j
 @Service
@@ -41,54 +40,61 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     @Transactional
-    public Account create(BankMember bankMember, Account account) {
-        if (account == null || bankMember == null) {
+    public Account createdByBankMember(BankMember bankMember, AccountDto accountDto) {
+        validationCheckMember(bankMember, accountDto);
+
+        Account account = Account.builder()
+                .accountNumber(accountDto.getAccountNumber())
+                .amount(accountDto.getAmount())
+                .accountStatus(accountDto.getAccountStatus())
+                .build();
+
+        return accountRepository.save(account);
+    }
+
+    private BankMember validationCheckMember(BankMember bankMember, AccountDto accountDto) {
+        if (accountDto == null || bankMember == null) {
             throw new IllegalArgumentException("잘못된 값");
         }
 
         BankMember existingMember = memberRepository.findById(bankMember.getId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        if (accountRepository.existsByAccountNumber(account.getAccountNumber())) {
+        if (accountRepository.existsByAccountNumber(accountDto.getAccountNumber())) {
             throw new IllegalArgumentException("이미 존재하는 계좌입니다.");
         }
 
-        account.setBankMember(existingMember);
-
-        Account savedAccount = accountRepository.save(account);
-
-        // accounts 리스트가 null일 경우 빈 리스트로 초기화
-        if (existingMember.getAccounts() == null) {
-            existingMember.setAccounts(new ArrayList<>());
-        }
-        existingMember.getAccounts().add(savedAccount);
-        memberRepository.save(existingMember);
-
-        return savedAccount;
+        return existingMember;
     }
-
     @Override
     @Transactional
     public void delete(Long accountId) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계좌입니다."));
         accountRepository.delete(account);
+
+        if (accountRepository.existsById(accountId)) {
+            throw new IllegalArgumentException("계좌 삭제에 실패했습니다.");
+        }
     }
 
     @Override
     @Transactional
-    public Account updateAccount(Long id, Account updatedAccount) {
-        Account existingAccount = accountRepository.findById(id)
+    public Account updateAccount(Long accountId, AccountDto updatedAccountDto) {
+        Account exsitAccount = validationOfId(accountId);
+
+        Account updatedAccount = exsitAccount.toBuilder()
+                .accountNumber(updatedAccountDto.getAccountNumber())
+                .amount(updatedAccountDto.getAmount())
+                .accountStatus(updatedAccountDto.getAccountStatus())
+                .build();
+
+        return accountRepository.save(updatedAccount);
+    }
+
+    private Account validationOfId(Long accountId) {
+        return accountRepository.findById(accountId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계좌입니다."));
-
-        if (updatedAccount.getAccountNumber() != null) {
-            existingAccount.setAccountNumber(updatedAccount.getAccountNumber());
-        }
-        if (updatedAccount.getAmount() >= 0) {
-            existingAccount.setAmount(updatedAccount.getAmount());
-        }
-
-        return accountRepository.save(existingAccount);
     }
 
     @Override
