@@ -5,7 +5,7 @@ public enum AccountStatus {
     UNREGISTER("미회원가입"),
 
     ACTIVE ("활성"),
-    UNACITVE("비활성");
+    UN_ACTIVE("비활성");
 
     private final String accountStatus;
 

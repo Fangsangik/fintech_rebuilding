@@ -5,6 +5,7 @@ package miniproject.fintech.type;
  */
 public enum Grade {
     VIP("특별회원"),
+    REGULAR("중간회원"),
     NORMAL("일반회원");
 
     private final String memberGrade;

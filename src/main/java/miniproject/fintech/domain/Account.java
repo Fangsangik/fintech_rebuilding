@@ -19,6 +19,7 @@ public class Account {
     private Long id;
 
     private String accountNumber;
+    private String name;
     private long amount;
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
@@ -31,14 +32,14 @@ public class Account {
     private AccountStatus accountStatus;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Deposit> deposits = new HashSet<>();
+    private List<Deposit> deposits = new ArrayList<>();
 
     @OneToMany(mappedBy = "sourceAccount", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Transfer> sentTransfers = new HashSet<>();
+    private List<Transfer> sentTransfers = new ArrayList<>();
 
     @OneToMany(mappedBy = "destinationAccount", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Transfer> receivedTransfers = new HashSet<>();
+    private List<Transfer> receivedTransfers = new ArrayList<>();
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Transaction> transactions = new HashSet<>();
+    private List<Transaction> transactions = new ArrayList<>();
 }

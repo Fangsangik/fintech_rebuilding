@@ -4,17 +4,18 @@ import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.domain.Deposit;
 import miniproject.fintech.dto.AccountDto;
+import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.DepositDto;
 import miniproject.fintech.repository.AccountRepository;
 import miniproject.fintech.repository.MemberRepository;
 
+import miniproject.fintech.service.memberservice.MemberService;
 import miniproject.fintech.type.AccountStatus;
 import miniproject.fintech.type.DepositStatus;
 import miniproject.fintech.type.Grade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,13 +23,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static miniproject.fintech.type.AccountStatus.UNACITVE;
+import static miniproject.fintech.type.AccountStatus.UN_ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@Transactional
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+//@Transactional
+//@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 class AccountServiceImplTest {
 
     @Autowired
@@ -36,6 +37,9 @@ class AccountServiceImplTest {
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private MemberService memberService;
 
     @Autowired
     private AccountService accountService;
@@ -78,6 +82,7 @@ class AccountServiceImplTest {
     }
 
     @Test
+    @Transactional
     void save() {
         Account saveAccount = accountRepository.save(account);
         assertThat(saveAccount).isNotNull();
@@ -85,6 +90,7 @@ class AccountServiceImplTest {
     }
 
     @Test
+    @Transactional
     void findById() {
         Optional<Account> accountId = accountService.findById(account.getId());
         assertThat(accountId).isPresent();
@@ -92,6 +98,7 @@ class AccountServiceImplTest {
     }
 
     @Test
+    @Transactional
     void findAll() {
         Account account1 = Account.builder()
                 .accountNumber(ACCOUNT_NUMBER)
@@ -115,6 +122,7 @@ class AccountServiceImplTest {
     }
 
     @Test
+    @Transactional
     void create() {
         DepositDto depositDto = DepositDto.builder()
                 .depositAmount(10000)
@@ -127,7 +135,7 @@ class AccountServiceImplTest {
                 .accountStatus(AccountStatus.REGISTER)
                 .amount(10000)
                 .accountNumber("1234567890")
-                .deposits(Set.of(
+                .deposits(List.of(
                         Deposit.builder()
                                 .depositAmount(depositDto.getDepositAmount())
                                 .depositAt(depositDto.getDepositAt())
@@ -146,6 +154,36 @@ class AccountServiceImplTest {
         assertEquals(depositDto.getDepositAmount(), savedDeposit.getDepositAmount());
         assertEquals(depositDto.getDepositStatus(), savedDeposit.getDepositStatus());
         assertEquals(depositDto.getMessage(), savedDeposit.getMessage(), "Deposit message should match");
+    }
+
+    @Test
+    @Transactional
+    void createAccountTest() {
+        // Given: BankMemberDto 객체를 생성하고 멤버를 데이터베이스에 저장
+        BankMemberDto bankMemberDto = BankMemberDto.builder()
+                .name("John Doe")
+                .email("john.doe@example.com")
+                .password("securepassword")
+                .address("123 Main St")
+                .createdAt(LocalDateTime.now())
+                .accountNumber("1234567890")
+                .build();
+
+        BankMember createdMember = memberService.createBankMember(bankMemberDto);
+
+        // Given: AccountDto 객체를 생성
+        AccountDto accountDto = AccountDto.builder()
+                .accountNumber("9876543210")
+                .amount(1000)
+                .accountStatus(AccountStatus.ACTIVE)
+                .build();
+
+        // When: 계좌를 생성
+        Account createdAccount = accountService.createAccountForMember(accountDto, createdMember.getId());
+
+        // Then: 계좌가 성공적으로 생성되었는지 확인
+        assertNotNull(createdAccount.getId());
+        assertEquals("9876543210", createdAccount.getAccountNumber());
     }
 
     @Test
@@ -171,13 +209,14 @@ class AccountServiceImplTest {
     }
 
     @Test
+    @Transactional
     void updateAccount() {
         //given
         Account existingAccount = Account.builder()
                 .accountNumber(ACCOUNT_NUMBER)
-                .deposits(new HashSet<>())
-                .transactions(new HashSet<>())
-                .receivedTransfers(new HashSet<>())
+                .deposits(new ArrayList<>())
+                .transactions(new ArrayList<>())
+                .receivedTransfers(new ArrayList<>())
                 .accountStatus(AccountStatus.REGISTER)
                 .amount(10000)
                 .createdAt(LocalDateTime.now())
@@ -188,7 +227,7 @@ class AccountServiceImplTest {
         AccountDto accountDto = AccountDto.builder()
                 .id(savedAccount.getId())
                 .amount(20000)
-                .accountStatus(UNACITVE)
+                .accountStatus(UN_ACTIVE)
                 .transactions(new ArrayList<>())
                 .deposits(new ArrayList<>())
                 .receivedTransfers(new ArrayList<>())
@@ -200,7 +239,7 @@ class AccountServiceImplTest {
                 .orElseThrow(() -> new IllegalArgumentException("Account Not Found"));
 
         assertThat(updatedAccount.getAmount()).isEqualTo(20000);
-        assertThat(updatedAccount.getAccountStatus()).isEqualTo(UNACITVE);
+        assertThat(updatedAccount.getAccountStatus()).isEqualTo(UN_ACTIVE);
 
         assertThat(updatedAccount.getTransactions()).isNotNull();
         assertThat(updatedAccount.getDeposits()).isEmpty();

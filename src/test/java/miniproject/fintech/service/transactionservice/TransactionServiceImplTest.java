@@ -70,7 +70,8 @@ class TransactionServiceImplTest {
     void getTransactionById() {
         Transaction savedTransaction = transactionRepository.save(transaction);
 
-        Optional<Transaction> rstTransaction = transactionService.getTransactionById(transaction.getId(), bankMember);
+        Optional<Transaction> rstTransaction = transactionService.getTransactionById
+                (transaction.getId(), bankMember);
 
         assertTrue(rstTransaction.isPresent(), "Transaction이 존재해야합니다");
         Transaction rst = rstTransaction.get();

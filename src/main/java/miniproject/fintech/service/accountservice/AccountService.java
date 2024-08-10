@@ -17,11 +17,13 @@ public interface AccountService {
 
     List<Account> findAll();
 
-    Account createdByBankMember(BankMember bankMember, AccountDto accountDto);
+    Account createAccountForMember(AccountDto accountDto, Long memberId);
 
     void delete(Long accountId);
 
     Account updateAccount(Long accountId, AccountDto updatedAccount);
 
     long getAccountBalance(Long id);
+
+    long getTotalAccountBalance();
 }

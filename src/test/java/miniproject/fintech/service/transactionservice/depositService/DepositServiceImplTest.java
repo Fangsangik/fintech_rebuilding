@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @Slf4j
 @SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY) //인메모리 사용
+//@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY) //인메모리 사용
 class DepositServiceImplTest {
     @Autowired
     private DepositService depositService;

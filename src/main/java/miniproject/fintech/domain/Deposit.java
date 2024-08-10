@@ -6,12 +6,12 @@ import miniproject.fintech.type.*;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true) //setter 사용을 줄여보기 위해 사용
+@Entity
 //단일 계좌 입금
 public class Deposit {
 

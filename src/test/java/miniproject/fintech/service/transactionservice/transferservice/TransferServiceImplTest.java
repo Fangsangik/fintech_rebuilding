@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.*;
 
 @Slf4j
 @SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+//@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 class TransferServiceImplTest {
 
 

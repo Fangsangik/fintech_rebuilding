@@ -1,8 +1,10 @@
 package miniproject.fintech.service.memberservice;
 
+import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.BankMemberDto;
+import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.MemberRepository;
 import miniproject.fintech.type.Grade;
 import org.junit.jupiter.api.Assertions;
@@ -23,10 +25,10 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
 @SpringBootTest
 @Transactional
-//데이터베이스와 관련된 테스트에 최적화되어 있으며, 데이터베이스 관련 빈만 로드
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+//@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 class MemberServiceTest {
 
     @Autowired
@@ -75,7 +77,6 @@ class MemberServiceTest {
         assertThat(saveMember2.getPassword()).isEqualTo("987654321");
     }
 
-
     @Test
     void findById_ValidId_ShouldReturnBankMember() {
         BankMember bankMember = BankMember.builder()
@@ -89,7 +90,7 @@ class MemberServiceTest {
 
         BankMember savedMember = memberRepository.save(bankMember);
 
-        Optional<BankMember> foundMember = memberService.findById(savedMember);
+        Optional<BankMember> foundMember = memberService.findById(savedMember.getId());
 
         assertThat(foundMember).isPresent();
         assertThat(foundMember.get()).usingRecursiveComparison().isEqualTo(savedMember);
@@ -101,7 +102,7 @@ class MemberServiceTest {
                 .id(999L)
                 .build();
 
-        Optional<BankMember> foundMember = memberService.findById(nonExistentMember);
+        Optional<BankMember> foundMember = memberService.findById(nonExistentMember.getId());
 
         assertThat(foundMember).isEmpty();
     }
@@ -113,7 +114,8 @@ class MemberServiceTest {
                 .id(null)
                 .build();
 
-        assertThrows(IllegalArgumentException.class, () -> memberService.findById(invalidMember));
+        // CustomError가 발생해야 함
+        assertThrows(CustomError.class, () -> memberService.findById(invalidMember.getId()));
     }
 
     @Test
@@ -159,6 +161,7 @@ class MemberServiceTest {
         // Given: BankMemberDto 객체를 생성
         BankMemberDto bankMemberDto = BankMemberDto.builder()
                 .name("John Doe")
+                .password("123")
                 .email("john.doe@example.com")
                 .password("securepassword")
                 .address("123 Main St")
@@ -167,7 +170,7 @@ class MemberServiceTest {
                 .build();
 
         // When: createBankMember 메서드를 호출하여 새 BankMember를 생성
-        BankMember createdMember = memberService.createBankMember(bankMemberDto, null);
+        BankMember createdMember = memberService.createBankMember(bankMemberDto);
 
         // Then: 생성된 BankMember가 null이 아니고, BankMemberDto의 필드와 일치해야 함
         assertNotNull(createdMember, "The created BankMember should not be null");
@@ -176,10 +179,6 @@ class MemberServiceTest {
         assertEquals(bankMemberDto.getAccountNumber(), createdMember.getAccountNumber(), "The account numbers should match");
     }
 
-    /**
-     * findById -> Optional.empty를 반환 / IllegalArgumentException 던져야 한다고 명시
-     * 적절히 동작 하지 않을 가능성 있음
-     */
     @Test
     @Transactional
     void delete() {
@@ -193,15 +192,15 @@ class MemberServiceTest {
                 .accountNumber("1234567890")
                 .build();
 
-        BankMember rst = memberService.createBankMember(bankMemberDto, null);
+        BankMember rst = memberService.createBankMember(bankMemberDto);
         Long memberId = rst.getId();
 
-        Exception exception = assertThrows(IllegalArgumentException.class,
+        // 비밀번호가 틀렸을 때 CustomError가 발생해야 함
+        Exception exception = assertThrows(CustomError.class,
                 () -> {
                     memberService.deleteById(memberId, "wrongpassword");
                 });
 
         assertEquals("비밀번호가 일치하지 않습니다.", exception.getMessage());
-
     }
 }
