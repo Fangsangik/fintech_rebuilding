@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 import miniproject.fintech.type.Grade;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,6 +19,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BankMemberDto {
+
+    @NotNull
+    @Min(1)
     private Long id;
 
     @NotBlank (message = "name cannot be blank")

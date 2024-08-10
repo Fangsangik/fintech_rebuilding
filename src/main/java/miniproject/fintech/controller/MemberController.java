@@ -35,7 +35,7 @@ public class MemberController {
     @GetMapping("/{id}")
     public ResponseEntity<BankMember> getMemberById(@PathVariable Long id) {
         BankMember findMember = memberService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
         return ResponseEntity.ok(findMember);
     }
 
@@ -44,7 +44,7 @@ public class MemberController {
             @PathVariable Long id,
             @Valid @RequestBody BankMemberDto bankMemberDto) {
         BankMember existingBankMember = memberService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
 
         BankMember updatedMember = memberService.updateMember(existingBankMember, bankMemberDto);
         return ResponseEntity.accepted().body(updatedMember);
@@ -55,10 +55,10 @@ public class MemberController {
             @PathVariable Long id,
             @RequestParam String password) {
         BankMember existingBankMember = memberService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("회원 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
 
         if (!existingBankMember.getPassword().equals(password)) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new CustomError(PASSWORD_INCORRECT);
         }
 
         memberService.deleteById(id, password);

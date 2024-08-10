@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import miniproject.fintech.type.AccountStatus;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -17,6 +18,8 @@ import java.util.List;
 @AllArgsConstructor
 public class AccountDto {
 
+    @NotNull
+    @Min(1)
     private Long id;
 
     @NotNull(message = "null이면 안됩니다.")

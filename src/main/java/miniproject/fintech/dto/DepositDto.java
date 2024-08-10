@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.type.DepositStatus;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 
@@ -14,7 +17,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DepositDto {
-
+    @NotNull
+    @Min(1)
     private Long id;
 
     private long depositAmount;

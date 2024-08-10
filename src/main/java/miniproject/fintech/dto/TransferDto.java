@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.type.TransferStatus;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Getter
@@ -14,6 +17,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TransferDto {
 
+    @NotNull
+    @Min(1)
     private Long id;
 
     private long transferAmount;

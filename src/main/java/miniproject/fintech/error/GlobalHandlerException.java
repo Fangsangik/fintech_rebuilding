@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -44,6 +45,12 @@ public class GlobalHandlerException {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("An error occurred: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(NumberFormatException.class)
+    @ResponseBody
+    public ResponseEntity<String> handleNumberFormatException(NumberFormatException ex) {
+        return new ResponseEntity<>("숫자 형식이 올바르지 않습니다: " + ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     private boolean responseIsCommitted(HttpServletRequest request) {
