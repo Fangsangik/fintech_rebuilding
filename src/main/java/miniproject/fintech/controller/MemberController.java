@@ -5,12 +5,12 @@ import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.service.memberservice.MemoryMemberService;
-import miniproject.fintech.type.ErrorType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
 
 import static miniproject.fintech.type.ErrorType.*;
 
