@@ -1,7 +1,7 @@
 # fintech_rebuilding
 ## 회원 관리 및 계좌 관리 
 
-## 제작 기간 : 2024/08/06 ~
+## 제작 기간 : 2024/08/06 ~ 2024/08/12
 ### 사용 기술 (Java, H2Database, SpringBoot, JPA)
 
 24/08/06
@@ -37,6 +37,6 @@ findById의 경우 단순 조회이기 때문에 Transaction 부분에 readOnly 
 - delete문 진행시 NullPointException 발생 -> 해결
 - PostMan으로 bankMember 생성시 null 값 발생 -> BankMemberDto에 id값 빠져있었음, controller에 null값 방지 추가해서  해결
 
-## 추가로 구현해보고 싶은 기능 
+## 추가로 구현해보고 싶은 기능 (다음 프로젝트에...)
 - SpringSecurity로 login service 만들어보기 
 - Controller 부분 redirect 설정해보기
