@@ -35,3 +35,8 @@
 findById의 경우 단순 조회이기 때문에 Transaction 부분에 readOnly 추가 -> 해결 
 - 실행결과 -> h2 database에 값이 정확히 올라기지 않음(o) / 해결 : (@Transaction)을 걸어놨었음..
 - delete문 진행시 NullPointException 발생 -> 해결
+- PostMan으로 bankMember 생성시 null 값 발생 -> BankMemberDto에 id값 빠져있었음, controller에 null값 방지 추가해서  해결
+
+## 추가로 구현해보고 싶은 기능 
+- SpringSecurity로 login service 만들어보기 
+- Controller 부분 redirect 설정해보기
