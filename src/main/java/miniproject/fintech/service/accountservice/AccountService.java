@@ -26,4 +26,6 @@ public interface AccountService {
     long getAccountBalance(Long id);
 
     long getTotalAccountBalance();
+
+    boolean existsById(Long id);
 }

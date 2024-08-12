@@ -27,4 +27,6 @@ public interface MemberService {
     BankMember updateMember(BankMember bankMember, BankMemberDto updatedMemberDto);
 
     Page<BankMember> findAll(Pageable pageable);
+
+    boolean existsById(Long id);
 }

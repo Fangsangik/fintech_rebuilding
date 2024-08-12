@@ -1,9 +1,6 @@
 package miniproject.fintech.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import miniproject.fintech.type.AccountStatus;
 
 import javax.validation.constraints.Min;
@@ -13,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

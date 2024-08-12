@@ -72,12 +72,14 @@ public class MemoryMemberService implements MemberService {
         log.info("새 은행 회원 검증 중: 이메일 - {}, 계좌번호 - {}",
                 bankMember.getEmail(), bankMember.getAccountNumber());
 
-        if (memberRepository.findByEmail(bankMember.getEmail()) != null) {
+        Optional<BankMember> existingMemberByEmail = memberRepository.findByEmail(bankMember.getEmail());
+        if (existingMemberByEmail.isPresent()) {
             log.error("이미 사용 중인 이메일: {}", bankMember.getEmail());
             throw new CustomError(EMAIL_DUPLICATE);
         }
 
-        if (memberRepository.findByAccountNumber(bankMember.getAccountNumber()).isPresent()) {
+        Optional<BankMember> existingMemberByAccountNumber = memberRepository.findByAccountNumber(bankMember.getAccountNumber());
+        if (existingMemberByAccountNumber.isPresent()) {
             log.error("이미 사용 중인 계좌번호: {}", bankMember.getAccountNumber());
             throw new CustomError(ACCOUNT_NUMBER_DUPLICATE);
         }
@@ -151,5 +153,10 @@ public class MemoryMemberService implements MemberService {
     public Page<BankMember> findAll(Pageable pageable) {
         log.info("페이지를 사용하여 모든 은행 회원 찾기: {}", pageable);
         return memberRepository.findAll(pageable);
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return memberRepository.existsById(id);
     }
 }

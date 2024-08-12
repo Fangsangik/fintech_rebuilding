@@ -20,22 +20,23 @@ import java.util.List;
 @AllArgsConstructor
 public class BankMemberDto {
 
-    @NotNull
-    @Min(1)
+    //@NotNull(message = "ID cannot be null")
+    //@Min(value = 1, message = "ID must be greater than 0")
     private Long id;
 
-    @NotBlank (message = "name cannot be blank")
+    //@NotBlank(message = "Name cannot be blank")
     private String name;
 
-    @NotBlank(message = "Account number is required")
+    //@NotBlank(message = "Account number is required")
     private String accountNumber;
 
     private int amount;
 
-    @NotBlank(message = "email is required")
-    @Email(message = "Invalid email format")
+    //@NotBlank(message = "Email is required")
+    //@Email(message = "Invalid email format")
     private String email;
-    @NotBlank (message = "password cannot be blank")
+
+    //@NotBlank (message = "password cannot be blank")
     private String password;
     private int age;
     private LocalDate birth;

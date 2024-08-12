@@ -4,6 +4,10 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: 123
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
   main:
     allow-bean-definition-overriding: true
     allow-circular-references: true
@@ -19,3 +23,9 @@ spring:
     console:
       enabled: true
       path: /h2-console
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework: DEBUG
+    org.hibernate: ERROR

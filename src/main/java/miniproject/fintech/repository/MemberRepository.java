@@ -18,6 +18,6 @@ public interface MemberRepository extends JpaRepository<BankMember, Long>{
 
     Page<BankMember> findAll(Pageable pageable);
 
-    BankMember findByEmail(String email);
+    Optional<BankMember> findByEmail(String email);
 
 }

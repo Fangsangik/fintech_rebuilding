@@ -171,4 +171,9 @@ public class AccountServiceImpl implements AccountService {
         log.info("총 계좌 잔액 조회 성공: 총 잔액 = {}", totalBalance);
         return totalBalance;
     }
+
+    @Override
+    public boolean existsById(Long id) {
+        return accountRepository.existsById(id);
+    }
 }
