@@ -38,6 +38,8 @@ public class Transaction {
     @JoinColumn(name = "bank_member_id", nullable = false)
     private BankMember bankMember;
 
+    private Long sourceAccountId;
+
     @Enumerated(EnumType.STRING)
     private Grade grade;
 

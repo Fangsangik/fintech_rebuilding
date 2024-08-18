@@ -5,9 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.AccountDto;
+import miniproject.fintech.dto.EntityToDtoMapper;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.AccountRepository;
-import miniproject.fintech.repository.MemberRepository;
 import miniproject.fintech.service.memberservice.MemberService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,12 +23,12 @@ import static miniproject.fintech.type.ErrorType.*;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-    private final MemberRepository memberRepository;
     private final AccountRepository accountRepository;
     private final MemberService memberService;
+    private final EntityToDtoMapper mapper;
 
     @Override
-    public Account save(Account account) {
+    public AccountDto save(AccountDto account) {
         log.info("계좌 저장 요청: {}", account);
         Account savedAccount = accountRepository.save(account);
         log.info("계좌 저장 성공: {}", savedAccount);
