@@ -12,6 +12,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -46,5 +47,5 @@ public class BankMemberDto {
     private Grade grade;
     private String address;
 
-    private List<AccountDto> accounts;
+    private List<AccountDto> accounts = new ArrayList<>();
 }

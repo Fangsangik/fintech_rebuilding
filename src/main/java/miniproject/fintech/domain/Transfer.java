@@ -23,11 +23,11 @@ public class Transfer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_account_id")
-    private Account sourceAccount;
+    private Account sourceAccountId;
 
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "destination_account_id")
-    private Account destinationAccount;
+    private Account destinationAccountId;
 
     @Enumerated(EnumType.STRING)
     private TransferStatus transferStatus;

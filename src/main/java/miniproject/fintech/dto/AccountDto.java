@@ -7,6 +7,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -35,8 +36,8 @@ public class AccountDto {
     @NotNull(message = "null이면 안됩니다.")
     private AccountStatus accountStatus;
 
-    private List<DepositDto> deposits;
-    private List<TransferDto> sentTransfers;
-    private List<TransferDto> receivedTransfers;
-    private List<TransactionDto> transactions;
+    private List<DepositDto> deposits = new ArrayList<>();
+    private List<TransferDto> sentTransfers = new ArrayList<>();
+    private List<TransferDto> receivedTransfers = new ArrayList<>();
+    private List<TransactionDto> transactions = new ArrayList<>();
 }

@@ -92,7 +92,7 @@ class AccountServiceImplTest {
     @Test
     @Transactional
     void findById() {
-        Optional<Account> accountId = accountService.findById(account.getId());
+        Optional<AccountDto> accountId = accountService.findById(account.getId());
         assertThat(accountId).isPresent();
         assertThat(accountId.get().getId()).isEqualTo(account.getId());
     }
@@ -131,26 +131,19 @@ class AccountServiceImplTest {
                 .message("deposit received")
                 .build();
 
-        Account account = Account.builder()
+        AccountDto accountDto = AccountDto.builder()
                 .accountStatus(AccountStatus.REGISTER)
                 .amount(10000)
                 .accountNumber("1234567890")
-                .deposits(List.of(
-                        Deposit.builder()
-                                .depositAmount(depositDto.getDepositAmount())
-                                .depositAt(depositDto.getDepositAt())
-                                .depositStatus(depositDto.getDepositStatus())
-                                .message(depositDto.getMessage())
-                                .build()
-                ))
+                .deposits(List.of(depositDto))
                 .build();
 
-        Account savedAccount = accountService.save(account);
+        AccountDto savedAccount = accountService.save(accountDto);
         assertNotNull(savedAccount, "saved account should not be null");
         assertEquals("1234567890", savedAccount.getAccountNumber());
         assertEquals(1, savedAccount.getDeposits().size());
 
-        Deposit savedDeposit = savedAccount.getDeposits().iterator().next();
+        DepositDto savedDeposit = savedAccount.getDeposits().iterator().next();
         assertEquals(depositDto.getDepositAmount(), savedDeposit.getDepositAmount());
         assertEquals(depositDto.getDepositStatus(), savedDeposit.getDepositStatus());
         assertEquals(depositDto.getMessage(), savedDeposit.getMessage(), "Deposit message should match");
@@ -179,7 +172,7 @@ class AccountServiceImplTest {
                 .build();
 
         // When: 계좌를 생성
-        Account createdAccount = accountService.createAccountForMember(accountDto, createdMember.getId());
+        AccountDto createdAccount = accountService.createAccountForMember(accountDto, createdMember.getId());
 
         // Then: 계좌가 성공적으로 생성되었는지 확인
         assertNotNull(createdAccount.getId());

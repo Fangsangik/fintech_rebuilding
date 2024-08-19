@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
-
 import javax.validation.Valid;
 
 import java.util.List;
@@ -32,14 +31,14 @@ public class AccountController {
     private final MemberService memberService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Account> getAccountId(@PathVariable Long id) {
-        Account findAccountId = accountService.findById(id)
+    public ResponseEntity<AccountDto> getAccountId(@PathVariable Long id) {
+        AccountDto findAccountId = accountService.findById(id)
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
         return ResponseEntity.ok(findAccountId);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Account> createAccount(@Valid @RequestBody CreateAccountRequest request) {
+    public ResponseEntity<AccountDto> createAccount(@Valid @RequestBody CreateAccountRequest request) {
         BankMemberDto bankMemberDto = request.getBankMemberDto();
         AccountDto accountDto = request.getAccountDto();
 
@@ -55,16 +54,15 @@ public class AccountController {
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
 
         // 계좌를 생성합니다.
-        Account createAccount = accountService.createAccountForMember(accountDto, bankMember.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(createAccount);
+        AccountDto createAccountDto = accountService.createAccountForMember(accountDto, bankMember.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(createAccountDto);
     }
 
     @PostMapping("/update/{id}")
-    public ResponseEntity<Account> updateAccount(@PathVariable Long id, @Valid @RequestBody AccountDto accountDto) {
-        BankMember bankMember = validation(id);
-
-        Account updatedAccount = accountService.updateAccount(bankMember.getId(), accountDto);
-        return ResponseEntity.ok().body(updatedAccount);
+    public ResponseEntity<AccountDto> updateAccount(@PathVariable Long id, @Valid @RequestBody AccountDto accountDto) {
+        validation(id);
+        AccountDto updatedAccountDto = accountService.updateAccount(id, accountDto);
+        return ResponseEntity.ok().body(updatedAccountDto);
     }
 
     @DeleteMapping("/delete/{id}")

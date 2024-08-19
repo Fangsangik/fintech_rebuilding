@@ -1,27 +1,23 @@
 package miniproject.fintech.service.accountservice;
 
-import miniproject.fintech.domain.Account;
-import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.AccountDto;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface AccountService {
 
-    Account save(Account account);
+    AccountDto save(AccountDto account);
 
-    Optional<Account> findById(Long id);
+    Optional<AccountDto> findById(Long id);
 
-    List<Account> findAll();
+    List<AccountDto> findAll();
 
-    Account createAccountForMember(AccountDto accountDto, Long memberId);
+    AccountDto createAccountForMember(AccountDto accountDto, Long memberId);
 
     void delete(Long accountId);
 
-    Account updateAccount(Long accountId, AccountDto updatedAccount);
+    AccountDto updateAccount(Long accountId, AccountDto updatedAccount);
 
     long getAccountBalance(Long id);
 
