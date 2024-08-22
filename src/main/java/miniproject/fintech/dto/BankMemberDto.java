@@ -1,9 +1,6 @@
 package miniproject.fintech.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import miniproject.fintech.type.Grade;
 
 import javax.validation.constraints.Email;
@@ -17,6 +14,7 @@ import java.util.List;
 
 @Getter
 @Builder
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class BankMemberDto {
