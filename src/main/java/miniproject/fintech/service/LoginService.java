@@ -9,6 +9,7 @@ import miniproject.fintech.dto.EntityConverter;
 import miniproject.fintech.repository.MemberRepository;
 import miniproject.fintech.service.memberservice.MemberService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,42 +17,14 @@ import javax.servlet.http.HttpSession;
 import java.util.Optional;
 
 @Slf4j
+@Service
 @Transactional
 @RequiredArgsConstructor
 public class LoginService {
-    private final EntityConverter entityConverter;
     private final MemberRepository memberRepository;
-    private final MemberService memberService;
     private final PasswordEncoder passwordEncoder;
     private final DtoConverter dtoConverter;
 
-    private String encodePassword(String rawPassword) {
-        return passwordEncoder.encode(rawPassword);
-    }
-
-    public boolean registeredMember(BankMemberDto bankMemberDto) {
-        validateMemberDto(bankMemberDto);
-
-        if (isDuplicateMember(bankMemberDto.getId())) {
-            return false;
-        }
-
-        bankMemberDto.setPassword(encodePassword(bankMemberDto.getPassword()));
-        BankMember bankMember = entityConverter.convertToBankMember(bankMemberDto);
-        memberRepository.save(bankMember);
-        return true;
-    }
-
-    private void validateMemberDto(BankMemberDto bankMember) {
-        if (bankMember.getId() == null || bankMember.getPassword() == null) {
-            throw new IllegalArgumentException("ID와 비밀번호는 null일 수 없습니다.");
-        }
-    }
-
-    private boolean isDuplicateMember(Long memberId) {
-        Optional<BankMember> findMember = memberRepository.findById(memberId);
-        return findMember.isPresent();
-    }
 
     public Optional<BankMemberDto> loginCheck(BankMemberDto bankMemberDto) {
         Optional<BankMember> findMember = memberRepository.findById(bankMemberDto.getId());
