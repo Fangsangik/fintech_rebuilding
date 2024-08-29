@@ -9,6 +9,7 @@ import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.MemberRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import static miniproject.fintech.type.ErrorType.*;
 public class MemoryMemberService implements MemberService {
 
     private final MemberRepository memberRepository;
+    private final PasswordEncoder  passwordEncoder;
 
     @Override
     public BankMember save(BankMember bankMember) {
@@ -54,10 +56,13 @@ public class MemoryMemberService implements MemberService {
         log.info("새 은행 회원 생성 요청: {}", bankMemberDto);
         validationCreateNewMember(bankMemberDto);
 
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(bankMemberDto.getPassword());
+
         BankMember newBankMember = BankMember.builder()
                 .name(bankMemberDto.getName())
                 .email(bankMemberDto.getEmail())
-                .password(bankMemberDto.getPassword())
+                .password(encodedPassword) // 암호화된 비밀번호 저장
                 .address(bankMemberDto.getAddress())
                 .createdAt(bankMemberDto.getCreatedAt())
                 .accountNumber(bankMemberDto.getAccountNumber())
