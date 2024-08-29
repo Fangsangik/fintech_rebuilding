@@ -21,13 +21,8 @@ public class Transfer {
     private long transferAmount;
     private LocalDateTime transferAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "source_account_id")
-    private Account sourceAccountId;
-
-    @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "destination_account_id")
-    private Account destinationAccountId;
+    private Long sourceAccountId;
+    private Long destinationAccountId;
 
     @Enumerated(EnumType.STRING)
     private TransferStatus transferStatus;

@@ -73,8 +73,8 @@ public class EntityConverter {
                 .id(transferDto.getId())
                 .transferAmount(transferDto.getTransferAmount())
                 .transferAt(transferDto.getTransferAt())
-                .sourceAccountId(sourceAccount)
-                .destinationAccountId(destinationAccount)
+                .sourceAccountId(transferDto.getSourceAccountId())
+                .destinationAccountId(transferDto.getDestinationAccountId())
                 .transferStatus(transferDto.getTransferStatus())
                 .message(transferDto.getMessage())
                 .build();

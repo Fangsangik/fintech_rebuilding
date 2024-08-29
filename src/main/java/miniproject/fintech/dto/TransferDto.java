@@ -24,8 +24,8 @@ public class TransferDto {
     private long transferAmount;
     private LocalDateTime transferAt;
 
-    private Account sourceAccountId;
-    private Account destinationAccountId;
+    private long sourceAccountId;
+    private long destinationAccountId;
     private TransferStatus transferStatus;
 
     private String message;

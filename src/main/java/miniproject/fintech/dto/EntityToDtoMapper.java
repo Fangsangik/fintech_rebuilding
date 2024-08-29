@@ -59,8 +59,8 @@ public class EntityToDtoMapper {
             throw new EntityNotFoundException("Transfer는 null일 수 없습니다.");
         }
 
-        Long sourceAccountId = transfer.getSourceAccount() != null ? transfer.getSourceAccount().getId() : null;
-        Long destinationAccountId = transfer.getDestinationAccount() != null ? transfer.getDestinationAccount().getId() : null;
+        Long sourceAccountId = transfer.getSourceAccountId() != null ? transfer.getSourceAccountId() : null;
+        Long destinationAccountId = transfer.getDestinationAccountId() != null ? transfer.getDestinationAccountId() : null;
 
         return TransferDto.builder()
                 .id(transfer.getId())
