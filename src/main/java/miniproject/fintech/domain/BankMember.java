@@ -32,6 +32,7 @@ public class BankMember {
     private long curAmount;
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
+    private String role;
 
     @Enumerated(EnumType.STRING)
     private Grade grade;
