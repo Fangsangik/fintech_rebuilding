@@ -22,13 +22,20 @@ public class SecurityConfig { // 클래스 이름 변경
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login**", "/home**", "/member/create").permitAll()
-                        .requestMatchers("/process", "/transaction**", "/deposit**", "/member/update/{id}", "/member/delete/{id}", "/account**")
-                        .hasAnyRole("ADMIN", "USER") // 오타 수정: "ADMMIN" -> "ADMIN"
-                        .requestMatchers("/admin").hasRole("ADMIN")
+                        // Publicly accessible URLs
+                        .requestMatchers("/login", "/home", "/member/create").permitAll()
+
+                        // URLs accessible by ADMIN and USER roles
+                        .requestMatchers("/process", "/transaction/**", "/deposit/**", "/member/update/**", "/member/delete/**", "/account/**")
+                        .hasAnyRole("ADMIN", "USER")
+
+                        // URLs accessible by ADMIN role only
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        // Any other request requires authentication
                         .anyRequest().authenticated()
                 )
-                .csrf().disable(); // CSRF 설정을 원하는 경우 추가
+                .csrf().disable(); // Disable CSRF protection if not needed
 
         return http.build();
     }
