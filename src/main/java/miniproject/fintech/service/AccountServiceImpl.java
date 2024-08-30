@@ -1,4 +1,4 @@
-package miniproject.fintech.service.accountservice;
+package miniproject.fintech.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,7 +9,6 @@ import miniproject.fintech.dto.DtoConverter;
 import miniproject.fintech.dto.EntityConverter;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.AccountRepository;
-import miniproject.fintech.service.memberservice.MemberService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,24 +21,14 @@ import static miniproject.fintech.type.ErrorType.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AccountServiceImpl implements AccountService {
+public class AccountServiceImpl {
 
     private final AccountRepository accountRepository;
-    private final MemberService memberService;
+    private final MemoryMemberService memberService;
     private final DtoConverter dtoConverter;
     private final EntityConverter entityConverter;
 
-    @Override
-    public AccountDto save(AccountDto accountDto) {
-        log.info("계좌 저장 요청: {}", accountDto);
-        Account account = entityConverter.convertToAccount(accountDto);
-        Account savedAccount = accountRepository.save(account);
-        log.info("계좌 저장 성공: {}", savedAccount);
-        return dtoConverter.convertToAccountDto(savedAccount);
-    }
 
-
-    @Override
     public Optional<AccountDto> findById(Long id) {
         log.info("계좌 조회 요청: ID = {}", id);
         Optional<Account> account = accountRepository.findById(id);
@@ -52,7 +41,6 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    @Override
     public List<AccountDto> findAll() {
         log.info("모든 계좌 조회 요청");
         List<Account> accounts = accountRepository.findAll();
@@ -60,7 +48,6 @@ public class AccountServiceImpl implements AccountService {
         return dtoConverter.convertToAccountDtoList(accounts);
     }
 
-    @Override
     @Transactional
     public AccountDto createAccountForMember(AccountDto accountDto, Long memberId) {
         log.info("회원 ID {}로 계좌 생성 요청: {}", memberId, accountDto);
@@ -98,7 +85,6 @@ public class AccountServiceImpl implements AccountService {
         return bankMember;
     }
 
-    @Override
     @Transactional
     public void delete(Long accountId) {
         log.info("계좌 삭제 요청: ID = {}", accountId);
@@ -118,7 +104,6 @@ public class AccountServiceImpl implements AccountService {
         log.info("계좌 삭제 성공: ID = {}", accountId);
     }
 
-    @Override
     @Transactional
     public AccountDto updateAccount(Long accountId, AccountDto updatedAccountDto) {
         log.info("계좌 업데이트 요청: ID = {}, 업데이트 내용: {}", accountId, updatedAccountDto);
@@ -148,7 +133,6 @@ public class AccountServiceImpl implements AccountService {
                 });
     }
 
-    @Override
     public long getAccountBalance(Long id) {
         log.info("계좌 잔액 조회 요청: ID = {}", id);
         Account account = accountRepository.findById(id)
@@ -162,7 +146,6 @@ public class AccountServiceImpl implements AccountService {
         return balance;
     }
 
-    @Override
     @Transactional(readOnly = true)
     public long getTotalAccountBalance() {
         log.info("총 계좌 잔액 조회 요청");
@@ -174,7 +157,6 @@ public class AccountServiceImpl implements AccountService {
         return totalBalance;
     }
 
-    @Override
     public boolean existsById(Long id) {
         return accountRepository.existsById(id);
     }
