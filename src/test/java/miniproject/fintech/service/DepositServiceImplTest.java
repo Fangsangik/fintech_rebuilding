@@ -1,4 +1,4 @@
-package miniproject.fintech.service.transactionservice.depositService;
+package miniproject.fintech.service;
 
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Account;
@@ -6,18 +6,15 @@ import miniproject.fintech.domain.Deposit;
 import miniproject.fintech.dto.DepositDto;
 import miniproject.fintech.repository.AccountRepository;
 import miniproject.fintech.repository.DepositRepository;
-import miniproject.fintech.service.accountservice.AccountService;
 import miniproject.fintech.type.AccountStatus;
 import miniproject.fintech.type.DepositStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
 
-import static miniproject.fintech.type.DepositStatus.COMPLETED;
 import static org.assertj.core.api.Assertions.*;
 
 
@@ -26,13 +23,13 @@ import static org.assertj.core.api.Assertions.*;
 //@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY) //인메모리 사용
 class DepositServiceImplTest {
     @Autowired
-    private DepositService depositService;
+    private DepositServiceImpl depositService;
 
     @Autowired
     private DepositRepository depositRepository;
 
     @Autowired
-    private AccountService accountService;
+    private AccountServiceImpl accountService;
 
     @Autowired
     private AccountRepository accountRepository;

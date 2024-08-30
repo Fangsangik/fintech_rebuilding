@@ -1,4 +1,4 @@
-package miniproject.fintech.service.discountservice;
+package miniproject.fintech.service;
 
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.repository.MemberRepository;

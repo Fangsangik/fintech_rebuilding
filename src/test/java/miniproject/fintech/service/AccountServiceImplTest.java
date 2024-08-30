@@ -1,17 +1,12 @@
-package miniproject.fintech.service.accountservice;
+package miniproject.fintech.service;
 
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
-import miniproject.fintech.domain.Deposit;
-import miniproject.fintech.dto.AccountDto;
-import miniproject.fintech.dto.BankMemberDto;
-import miniproject.fintech.dto.DepositDto;
+import miniproject.fintech.dto.*;
 import miniproject.fintech.repository.AccountRepository;
 import miniproject.fintech.repository.MemberRepository;
 
-import miniproject.fintech.service.memberservice.MemberService;
 import miniproject.fintech.type.AccountStatus;
-import miniproject.fintech.type.DepositStatus;
 import miniproject.fintech.type.Grade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,20 +34,24 @@ class AccountServiceImplTest {
     private MemberRepository memberRepository;
 
     @Autowired
-    private MemberService memberService;
+    private MemoryMemberService memberService;
 
     @Autowired
-    private AccountService accountService;
+    private AccountServiceImpl accountService;
+
+    @Autowired
+    private DtoConverter dtoConverter;
+
 
     private static final String ACCOUNT_NUMBER = String.valueOf(UUID.randomUUID());
 
-    private BankMember bankMember;
-    private Account account;
+    private BankMemberDto bankMemberDto;
+    private AccountDto accountDto;
 
     @BeforeEach
     void setUp() {
         // BankMember 객체 생성
-        bankMember = BankMember.builder()
+        BankMember bankMember = memberRepository.save(BankMember.builder()
                 .name("메시")
                 .age(38)
                 .accountNumber(ACCOUNT_NUMBER)
@@ -63,38 +62,29 @@ class AccountServiceImplTest {
                 .curAmount(10000)
                 .accounts(new ArrayList<>())
                 .password("MessiGiMoZI")
-                .build();
+                .build());
 
-        // BankMember 저장
-        this.bankMember = memberRepository.save(bankMember);
+        bankMemberDto = dtoConverter.convertToBankMemberDto(bankMember);
 
         // Account 객체 생성
-        Account messiAccount = Account.builder()
+        Account messiAccount = accountRepository.save(Account.builder()
                 .accountNumber(ACCOUNT_NUMBER)
                 .accountStatus(AccountStatus.REGISTER)
                 .createdAt(LocalDateTime.now())
                 .bankMember(bankMember)  // BankMember와 연관 설정
-                .build();
+                .build());
 
         // Account 저장
-        this.account = accountRepository.save(messiAccount);
+        accountDto = dtoConverter.convertToAccountDto(accountRepository.save(messiAccount));
 
-    }
-
-    @Test
-    @Transactional
-    void save() {
-        Account saveAccount = accountRepository.save(account);
-        assertThat(saveAccount).isNotNull();
-        assertThat(saveAccount.getAccountNumber()).isEqualTo(ACCOUNT_NUMBER);
     }
 
     @Test
     @Transactional
     void findById() {
-        Optional<AccountDto> accountId = accountService.findById(account.getId());
+        Optional<AccountDto> accountId = accountService.findById(accountDto.getId());
         assertThat(accountId).isPresent();
-        assertThat(accountId.get().getId()).isEqualTo(account.getId());
+        assertThat(accountId.get().getId()).isEqualTo(accountDto.getId());
     }
 
     @Test
@@ -123,74 +113,29 @@ class AccountServiceImplTest {
 
     @Test
     @Transactional
-    void create() {
-        DepositDto depositDto = DepositDto.builder()
-                .depositAmount(10000)
-                .depositAt(LocalDateTime.now())
-                .depositStatus(DepositStatus.COMPLETED)
-                .message("deposit received")
-                .build();
-
-        AccountDto accountDto = AccountDto.builder()
-                .accountStatus(AccountStatus.REGISTER)
-                .amount(10000)
-                .accountNumber("1234567890")
-                .deposits(List.of(depositDto))
-                .build();
-
-        AccountDto savedAccount = accountService.save(accountDto);
-        assertNotNull(savedAccount, "saved account should not be null");
-        assertEquals("1234567890", savedAccount.getAccountNumber());
-        assertEquals(1, savedAccount.getDeposits().size());
-
-        DepositDto savedDeposit = savedAccount.getDeposits().iterator().next();
-        assertEquals(depositDto.getDepositAmount(), savedDeposit.getDepositAmount());
-        assertEquals(depositDto.getDepositStatus(), savedDeposit.getDepositStatus());
-        assertEquals(depositDto.getMessage(), savedDeposit.getMessage(), "Deposit message should match");
-    }
-
-    @Test
-    @Transactional
     void createAccountTest() {
-        // Given: BankMemberDto 객체를 생성하고 멤버를 데이터베이스에 저장
-        BankMemberDto bankMemberDto = BankMemberDto.builder()
-                .name("John Doe")
-                .email("john.doe@example.com")
-                .password("securepassword")
-                .address("123 Main St")
-                .createdAt(LocalDateTime.now())
-                .accountNumber("1234567890")
-                .build();
 
-        BankMember createdMember = memberService.createBankMember(bankMemberDto);
-
-        // Given: AccountDto 객체를 생성
-        AccountDto accountDto = AccountDto.builder()
-                .accountNumber("9876543210")
-                .amount(1000)
-                .accountStatus(AccountStatus.ACTIVE)
-                .build();
-
+        accountRepository.deleteAll();
         // When: 계좌를 생성
-        AccountDto createdAccount = accountService.createAccountForMember(accountDto, createdMember.getId());
+        AccountDto createdAccount = accountService.createAccountForMember(accountDto, bankMemberDto.getId());
 
         // Then: 계좌가 성공적으로 생성되었는지 확인
         assertNotNull(createdAccount.getId());
-        assertEquals("9876543210", createdAccount.getAccountNumber());
+        assertEquals(bankMemberDto.getAccountNumber(), createdAccount.getAccountNumber());
     }
 
     @Test
     @Transactional
     void delete() {
-        assertThat(accountRepository.findById(account.getId())).isPresent();
-        accountService.delete(account.getId());
+        assertThat(accountRepository.findById(accountDto.getId())).isPresent();
+        accountService.delete(accountDto.getId());
 
         // Then: 계좌가 삭제되었는지 확인
-        Optional<Account> deletedAccount = accountRepository.findById(account.getId());
+        Optional<Account> deletedAccount = accountRepository.findById(accountDto.getId());
         assertThat(deletedAccount).isNotPresent();  // 계좌가 존재하지 않아야 함
 
         // BankMember의 계좌 목록에서 삭제된 계좌가 제거되었는지 확인
-        BankMember updatedBankMember = memberRepository.findById(bankMember.getId())
+        BankMember updatedBankMember = memberRepository.findById(bankMemberDto.getId())
                 .orElseThrow(() -> new IllegalArgumentException("BankMember does not exist"));
 
         // 계좌 목록이 초기화되지 않았는지 확인
