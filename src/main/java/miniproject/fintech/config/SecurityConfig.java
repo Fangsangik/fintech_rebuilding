@@ -21,7 +21,7 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
                         // Publicly accessible URLs
-                        .requestMatchers("/login**", "/home**", "/member/create").permitAll()
+                        .requestMatchers("/login**", "/home**", "/register/create").permitAll()
 
                         // URLs accessible by ADMIN and USER roles
                         .requestMatchers("/process", "/transaction/**", "/deposit/**", "/member/update/**", "/member/delete/**", "/account/**")
