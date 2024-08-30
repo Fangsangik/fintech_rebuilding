@@ -2,15 +2,12 @@ package miniproject.fintech.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import miniproject.fintech.domain.BankMember;
+
 import miniproject.fintech.dto.BankMemberDto;
-import miniproject.fintech.dto.DtoConverter;
-import miniproject.fintech.repository.MemberRepository;
 import miniproject.fintech.service.LoginService;
-import miniproject.fintech.service.memberservice.MemberService;
+import miniproject.fintech.service.MemoryMemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,7 +22,7 @@ import java.util.Optional;
 public class LoginController {
 
     private final LoginService loginService;
-    private final MemberService memberService;
+    private final MemoryMemberService memberService;
 
     @PostMapping
     public ResponseEntity<?> login(@RequestParam Long id,
