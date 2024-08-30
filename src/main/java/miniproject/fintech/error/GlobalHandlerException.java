@@ -6,6 +6,7 @@ import miniproject.fintech.dto.ErrorResponse;
 import miniproject.fintech.type.ErrorType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -58,6 +59,11 @@ public class GlobalHandlerException {
         return false;
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<String> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
+        log.error("지원되지 않는 HTTP 메서드 요청: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("Request method not supported");
+    }
 
     private HttpStatus determineHttpStatus(ErrorType errorType) {
         return switch (errorType) {
