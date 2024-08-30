@@ -3,6 +3,7 @@ package miniproject.fintech.dto;
 import miniproject.fintech.domain.*;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,7 @@ public class DtoConverter {
         return AccountDto.builder()
                 .id(account.getId())
                 .name(account.getName())
+                .deposits(new ArrayList<>())
                 .accountNumber(account.getAccountNumber())
                 .amount(account.getAmount())
                 .createdAt(account.getCreatedAt())
@@ -56,7 +58,7 @@ public class DtoConverter {
         if (transaction == null) return null;
 
         return TransactionDto.builder()
-                .bankMemberId(transaction.getBankMember().getId())
+                .id(transaction.getBankMember().getId())
                 .transactionAmount(transaction.getTransactionAmount())
                 .transactedAt(transaction.getTransactedAt())
                 .sourceAccountId(transaction.getSourceAccountId())
