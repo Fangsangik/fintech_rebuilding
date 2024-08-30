@@ -1,4 +1,4 @@
-package miniproject.fintech.service.memberservice;
+package miniproject.fintech.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,27 +13,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static miniproject.fintech.type.ErrorType.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MemoryMemberService implements MemberService {
+public class MemoryMemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder  passwordEncoder;
 
-    @Override
+
     public BankMember save(BankMember bankMember) {
         log.info("은행 회원 저장: {}", bankMember);
         return memberRepository.save(bankMember);
     }
 
-    @Override
+
     @Transactional(readOnly = true)
     public Optional<BankMember> findById(Long id) {
         if (id == null) {
@@ -44,15 +42,15 @@ public class MemoryMemberService implements MemberService {
         return memberRepository.findById(id);
     }
 
-    @Override
+
     public List<BankMember> findAll() {
         log.info("모든 은행 회원 찾기");
         return new ArrayList<>(memberRepository.findAll());
     }
 
-    @Override
+
     @Transactional
-    public BankMember createBankMember(BankMemberDto bankMemberDto) {
+    public BankMember createBankMember(BankMemberDto bankMemberDto, Set<String> roles) {
         log.info("새 은행 회원 생성 요청: {}", bankMemberDto);
         validationCreateNewMember(bankMemberDto);
 
@@ -62,10 +60,12 @@ public class MemoryMemberService implements MemberService {
         BankMember newBankMember = BankMember.builder()
                 .name(bankMemberDto.getName())
                 .email(bankMemberDto.getEmail())
-                .password(encodedPassword) // 암호화된 비밀번호 저장
+                .isActive(true)
+                .password(encodedPassword)
                 .address(bankMemberDto.getAddress())
                 .createdAt(bankMemberDto.getCreatedAt())
                 .accountNumber(bankMemberDto.getAccountNumber())
+                .roles(roles)
                 .build();
 
         BankMember savedMember = memberRepository.save(newBankMember);
@@ -90,7 +90,6 @@ public class MemoryMemberService implements MemberService {
         }
     }
 
-    @Override
     @Transactional
     public void deleteById(Long id, String password) {
         log.info("은행 회원 삭제 시도: ID - {}", id);
@@ -110,7 +109,6 @@ public class MemoryMemberService implements MemberService {
         }
     }
 
-    @Override
     @Transactional
     public BankMember updateMember(BankMember bankMember, BankMemberDto updatedMemberDto) {
         log.info("은행 회원 업데이트 요청: ID - {}, 내용 - {}", bankMember.getId(), updatedMemberDto);
@@ -138,7 +136,7 @@ public class MemoryMemberService implements MemberService {
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
     }
 
-    @Override
+
     public List<Account> findAccountByMemberId(Long id) {
         log.info("회원 ID로 계좌 찾기: ID - {}", id);
         BankMember member = memberRepository.findById(id)
@@ -147,20 +145,18 @@ public class MemoryMemberService implements MemberService {
         return new ArrayList<>(member.getAccounts());
     }
 
-    @Override
+
     public BankMember getBankMemberById(Long bankMemberId) {
         log.info("회원 ID로 은행 회원 찾기: ID - {}", bankMemberId);
         return memberRepository.findById(bankMemberId)
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
     }
 
-    @Override
     public Page<BankMember> findAll(Pageable pageable) {
         log.info("페이지를 사용하여 모든 은행 회원 찾기: {}", pageable);
         return memberRepository.findAll(pageable);
     }
 
-    @Override
     public boolean existsById(Long id) {
         return memberRepository.existsById(id);
     }
