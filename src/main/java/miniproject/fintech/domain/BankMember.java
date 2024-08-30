@@ -2,7 +2,6 @@ package miniproject.fintech.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import miniproject.fintech.tyoe.MemberStatus;
 import miniproject.fintech.type.Grade;
 
 import java.time.LocalDate;
