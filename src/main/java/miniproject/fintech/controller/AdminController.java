@@ -2,6 +2,8 @@ package miniproject.fintech.controller;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import miniproject.fintech.domain.Admin;
+import miniproject.fintech.dto.AdminDto;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.TransactionDto;
 import miniproject.fintech.service.AdminService;
@@ -48,4 +50,33 @@ public class AdminController {
         List<TransactionDto> allTransactions = adminService.getAllTransactions(pageNum, pageSize);
         return ResponseEntity.ok(allTransactions);
     }
+
+    // 관리자 정보 수정
+    @PutMapping("/updateAdmin/{id}")
+    public ResponseEntity<Admin> updateAdmin
+    (@PathVariable Long id,
+     @RequestBody AdminDto adminDto) {
+        Admin updatedAdmin = adminService.updateAdmin(id, adminDto);
+        return ResponseEntity.ok(updatedAdmin);
+    }
+
+    // 관리자가 사용자 비밀번호 변경
+    @PostMapping("/changeUserPassword")
+    public ResponseEntity<Void> changeUserPassword
+    (@RequestParam Long adminId,
+     @RequestParam Long userId,
+     @RequestParam String newPassword) {
+        adminService.adminChangeUserPassword(adminId, userId, newPassword);
+        return ResponseEntity.ok().build();
+    }
+
+    // 관리자 본인의 비밀번호 변경
+    @PostMapping("/changePassword")
+    public ResponseEntity<Void> changeAdminPassword
+    (@RequestParam Long adminId,
+     @RequestParam String newPassword) {
+        adminService.changeAdminPassword(adminId, newPassword);
+        return ResponseEntity.ok().build();
+    }
 }
+
