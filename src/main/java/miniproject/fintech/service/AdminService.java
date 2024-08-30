@@ -2,17 +2,22 @@ package miniproject.fintech.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import miniproject.fintech.domain.Admin;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.domain.Transaction;
+import miniproject.fintech.dto.AdminDto;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.DtoConverter;
 import miniproject.fintech.dto.TransactionDto;
 import miniproject.fintech.error.CustomError;
+import miniproject.fintech.repository.AdminRepository;
 import miniproject.fintech.repository.MemberRepository;
 import miniproject.fintech.repository.TransactionRepository;
+import miniproject.fintech.type.ErrorType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +34,8 @@ public class AdminService {
     private final MemberRepository memberRepository;
     private final DtoConverter converter;
     private final TransactionRepository transactionRepository;
+    private final AdminRepository adminRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public List<BankMemberDto> getAllBankMembers(int pageNum, int pageSize) {
@@ -59,11 +66,9 @@ public class AdminService {
     public BankMemberDto updateUserDetails(Long id, BankMemberDto bankMemberDto) {
         BankMember bankMember = findBankMember(id);
 
-        // 올바른 데이터 매핑
-        bankMember.setName(bankMemberDto.getName());
-        bankMember.setEmail(bankMemberDto.getEmail());
-        bankMember.setAge(bankMemberDto.getAge());
-        bankMember.setAddress(bankMemberDto.getAddress());
+        if (bankMemberDto.getName() != null) bankMember.setName(bankMemberDto.getName());
+        if (bankMemberDto.getEmail() != null) bankMember.setEmail(bankMemberDto.getEmail());
+        if (bankMemberDto.getAddress() != null) bankMember.setAddress(bankMemberDto.getAddress());
 
         BankMember updatedBankMember = memberRepository.save(bankMember);
         log.info("사용자 정보 수정 완료: 사용자 ID = {}", updatedBankMember.getId());
@@ -85,8 +90,74 @@ public class AdminService {
         return transactionDtos;
     }
 
+    @Transactional
+    public Admin updateAdmin(Long id, AdminDto adminDto) {
+        log.info("관리자 정보 수정 요청: 관리자 ID - {}", id);
+
+        Admin admin = adminRepository.findById(id)
+                .orElseThrow(() -> new CustomError(ErrorType.ADMIN_NOT_FOUND));
+
+        validateAdmin(id);
+
+        if (adminDto.getPassword() != null && !adminDto.getPassword().isEmpty()) {
+            String encodedPassword = passwordEncoder.encode(adminDto.getPassword());
+            admin.setPassword(encodedPassword);
+        }
+
+        if (adminDto.getName() != null) {
+            admin.setName(adminDto.getName());
+        }
+
+        if (adminDto.getEmail() != null) {
+            admin.setEmail(adminDto.getEmail());
+        }
+
+        Admin savedAdmin = adminRepository.save(admin);
+        log.info("관리자 정보 수정 완료: 관리자 ID - {}", savedAdmin.getId());
+
+        return savedAdmin;
+    }
+
+    public void adminChangeUserPassword(Long adminId, Long userId, String newPassword) {
+        log.info("관리자에 의한 사용자 비밀번호 변경 요청: 관리자 ID - {}, 사용자 ID - {}", adminId, userId);
+
+        validateAdmin(adminId);
+
+        BankMember user = findBankMember(userId);
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedPassword);
+
+        memberRepository.save(user);
+        log.info("비밀번호 변경 성공: 사용자 ID - {}", userId);
+    }
+
     private BankMember findBankMember(Long id) {
         return memberRepository.findById(id)
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
+    }
+
+    private void validateAdmin(Long adminId) {
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new CustomError(ErrorType.ADMIN_NOT_FOUND));
+
+        if (!admin.getRoles().contains("ADMIN")) {
+            log.error("접근 권한이 없습니다. 관리자 ID - {}", admin.getId());
+            throw new CustomError(NOT_ALLOWED_ACCESS);
+        }
+
+        log.info("관리자 검증 성공: 관리자 ID - {}", adminId);
+    }
+
+    public void changeAdminPassword(Long adminId, String newPassword) {
+        log.info("관리자 비밀번호 변경 요청: 관리자 ID - {}", adminId);
+
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new CustomError(ErrorType.ADMIN_NOT_FOUND));
+
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        admin.setPassword(encodedPassword);
+
+        adminRepository.save(admin);
+        log.info("비밀번호 변경 성공: 관리자 ID - {}", adminId);
     }
 }
