@@ -1,7 +1,4 @@
 package miniproject.fintech.config;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -9,12 +6,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig { // 클래스 이름 변경
+public class SecurityConfig {
 
-    // BCryptPasswordEncoder를 빈으로 등록
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -37,9 +32,20 @@ public class SecurityConfig { // 클래스 이름 변경
 
                         // Any other request requires authentication
                         .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")  // 로그인 페이지 설정
+                        .loginProcessingUrl("/perform_login")  // 로그인 폼의 action URL
+                        .defaultSuccessUrl("/home", true)  // 로그인 성공 시 리디렉션할 URL
+                        .failureUrl("/login?error=true")  // 로그인 실패 시 리디렉션할 URL
+                        .permitAll()  // 로그인 페이지는 누구나 접근 가능
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")  // 로그아웃 URL
+                        .logoutSuccessUrl("/login?logout=true")  // 로그아웃 성공 시 리디렉션할 URL
+                        .permitAll()  // 로그아웃 URL은 누구나 접근 가능
                 );
 
         return http.build();
     }
-
 }
