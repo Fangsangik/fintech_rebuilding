@@ -1,4 +1,4 @@
-package miniproject.fintech.service.transactionservice.transferservice;
+package miniproject.fintech.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,8 +8,6 @@ import miniproject.fintech.dto.TransferDto;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.AccountRepository;
 import miniproject.fintech.repository.TransferRepository;
-import miniproject.fintech.service.notificationservice.NotificationService;
-import miniproject.fintech.service.notificationservice.NotificationServiceImpl;
 import miniproject.fintech.type.TransferStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +17,12 @@ import static miniproject.fintech.type.ErrorType.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TransferServiceImpl implements TransferService {
+public class TransferServiceImpl {
 
     private final TransferRepository transferRepository;
     private final AccountRepository accountRepository;
-    private final NotificationService notificationService;
+    private final NotificationServiceImpl notificationService;
 
-    @Override
     @Transactional
     public Transfer processTransfer(TransferDto transferDto) {
         log.info("송금 처리 시작: 송금액 = {}, 송금 출발 계좌 ID = {}, 송금 도착 계좌 ID = {}",
@@ -50,8 +47,8 @@ public class TransferServiceImpl implements TransferService {
                 .transferAmount(transferDto.getTransferAmount())
                 .transferAt(transferDto.getTransferAt())
                 .transferStatus(TransferStatus.FAILED) // 초기 상태는 FAILED로 설정
-                .sourceAccount(sourceAccount)
-                .destinationAccount(destinationAccount)
+                .sourceAccountId(transferDto.getSourceAccountId())
+                .destinationAccountId(transferDto.getDestinationAccountId())
                 .message("송금이 실패되었습니다.")
                 .build();
 
