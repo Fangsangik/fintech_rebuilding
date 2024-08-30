@@ -1,24 +1,19 @@
 package miniproject.fintech.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.AccountDto;
 import miniproject.fintech.dto.BankMemberDto;
 
 import miniproject.fintech.dto.CreateAccountRequest;
 import miniproject.fintech.error.CustomError;
-import miniproject.fintech.service.accountservice.AccountService;
-import miniproject.fintech.service.memberservice.MemberService;
+import miniproject.fintech.service.AccountServiceImpl;
+import miniproject.fintech.service.MemoryMemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
-
-
-import javax.validation.Valid;
-
-import java.util.List;
 
 import static miniproject.fintech.type.ErrorType.*;
 
@@ -27,8 +22,8 @@ import static miniproject.fintech.type.ErrorType.*;
 @RequiredArgsConstructor
 public class AccountController {
 
-    private final AccountService accountService;
-    private final MemberService memberService;
+    private final AccountServiceImpl accountService;
+    private final MemoryMemberService memberService;
 
     @GetMapping("/{id}")
     public ResponseEntity<AccountDto> getAccountId(@PathVariable Long id) {
