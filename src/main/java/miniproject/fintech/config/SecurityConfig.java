@@ -1,5 +1,7 @@
 package miniproject.fintech.config;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,18 +14,19 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig { // 클래스 이름 변경
 
-    private final BCryptPasswordEncoder passwordEncoder;
-
-    public SecurityConfig(BCryptPasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
+    // BCryptPasswordEncoder를 빈으로 등록
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
                         // Publicly accessible URLs
-                        .requestMatchers("/login", "/home", "/member/create").permitAll()
+                        .requestMatchers("/login**", "/home**", "/member/create").permitAll()
 
                         // URLs accessible by ADMIN and USER roles
                         .requestMatchers("/process", "/transaction/**", "/deposit/**", "/member/update/**", "/member/delete/**", "/account/**")
@@ -34,16 +37,9 @@ public class SecurityConfig { // 클래스 이름 변경
 
                         // Any other request requires authentication
                         .anyRequest().authenticated()
-                )
-                .csrf().disable(); // Disable CSRF protection if not needed
+                );
 
         return http.build();
-    }
-
-    // BCryptPasswordEncoder를 빈으로 등록
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
 }
