@@ -1,4 +1,4 @@
-package miniproject.fintech.tyoe;
+package miniproject.fintech.type;
 
 import lombok.Getter;
 
