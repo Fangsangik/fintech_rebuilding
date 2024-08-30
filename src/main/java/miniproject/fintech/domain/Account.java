@@ -1,9 +1,9 @@
 package miniproject.fintech.domain;
 
+import jakarta.persistence.*;
 import lombok.*;
 import miniproject.fintech.type.AccountStatus;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -24,7 +24,7 @@ public class Account {
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
 
-    @ManyToOne (fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_member_id")
     private BankMember bankMember;
 
