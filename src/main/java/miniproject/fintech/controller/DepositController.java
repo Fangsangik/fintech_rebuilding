@@ -3,7 +3,7 @@ package miniproject.fintech.controller;
 import lombok.RequiredArgsConstructor;
 import miniproject.fintech.domain.Deposit;
 import miniproject.fintech.dto.DepositDto;
-import miniproject.fintech.service.transactionservice.depositService.DepositService;
+import miniproject.fintech.service.DepositServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DepositController {
 
-    private final DepositService depositService;
+    private final DepositServiceImpl depositService;
 
     @PostMapping("/process")
     public ResponseEntity<Deposit> processDeposit
