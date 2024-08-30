@@ -1,15 +1,13 @@
 package miniproject.fintech.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.error.CustomError;
-import miniproject.fintech.service.memberservice.MemoryMemberService;
-import org.springframework.http.HttpStatus;
+import miniproject.fintech.service.MemoryMemberService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 
 import static miniproject.fintech.type.ErrorType.*;
@@ -21,16 +19,6 @@ import static miniproject.fintech.type.ErrorType.*;
 public class MemberController {
 
     private final MemoryMemberService memberService;
-
-    @PostMapping("/create")
-    public ResponseEntity<BankMember> createMember(@Valid @RequestBody BankMemberDto bankMemberDto) throws CustomError {
-        if (bankMemberDto == null) {
-            throw new CustomError(MEMBER_NOT_FOUND);
-        }
-
-        BankMember newMember = memberService.createBankMember(bankMemberDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newMember);
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<BankMember> getMemberById(@PathVariable Long id) {
