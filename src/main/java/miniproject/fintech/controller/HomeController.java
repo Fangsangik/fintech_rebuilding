@@ -36,22 +36,4 @@ public class HomeController {
 
         return ResponseEntity.ok(statusMap);
     }
-
-    // 회원 생성 페이지로 리다이렉트 (API 스타일로 응답)
-    @GetMapping("/create/member")
-    public ResponseEntity<Map<String, String>> redirectToCreateMember() {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Redirect to member creation");
-        response.put("redirectUrl", "/member/create");
-        return ResponseEntity.status(HttpStatus.FOUND).body(response);
-    }
-
-    // 계좌 생성 페이지로 리다이렉트 (API 스타일로 응답)
-    @GetMapping("/create/account")
-    public ResponseEntity<Map<String, String>> redirectToCreateAccount() {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Redirect to account creation");
-        response.put("redirectUrl", "/account/create");
-        return ResponseEntity.status(HttpStatus.FOUND).body(response);
-    }
 }
