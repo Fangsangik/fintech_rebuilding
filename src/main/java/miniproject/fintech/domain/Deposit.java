@@ -1,9 +1,9 @@
 package miniproject.fintech.domain;
 
+import jakarta.persistence.*;
 import lombok.*;
 import miniproject.fintech.type.*;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter

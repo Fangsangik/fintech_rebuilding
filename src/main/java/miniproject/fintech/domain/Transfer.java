@@ -1,9 +1,9 @@
 package miniproject.fintech.domain;
 
+import jakarta.persistence.*;
 import lombok.*;
 import miniproject.fintech.type.*;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter
@@ -23,6 +23,9 @@ public class Transfer {
 
     private Long sourceAccountId;
     private Long destinationAccountId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Account account;
 
     @Enumerated(EnumType.STRING)
     private TransferStatus transferStatus;

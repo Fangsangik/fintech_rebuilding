@@ -1,12 +1,12 @@
 package miniproject.fintech.domain;
 
+import jakarta.persistence.*;
 import lombok.*;
 import miniproject.fintech.type.Grade;
 import miniproject.fintech.type.TransactionDescription;
 import miniproject.fintech.type.TransactionStatus;
 import miniproject.fintech.type.TransactionType;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter
