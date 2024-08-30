@@ -1,4 +1,4 @@
-package miniproject.fintech.service.discountservice;
+package miniproject.fintech.service;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package miniproject.fintech.service.transactionservice.depositService;
+package miniproject.fintech.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +8,6 @@ import miniproject.fintech.dto.DepositDto;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.AccountRepository;
 import miniproject.fintech.repository.DepositRepository;
-import miniproject.fintech.service.accountservice.AccountService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,13 +22,11 @@ import static miniproject.fintech.type.ErrorType.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DepositServiceImpl implements DepositService {
+public class DepositServiceImpl {
 
     private final DepositRepository depositRepository;
-    private final AccountService accountService;
     private final AccountRepository accountRepository;
 
-    @Override
     @Transactional
     public Deposit processDeposit(DepositDto depositDto) {
         log.info("입금 처리 시작: 계좌 ID = {}, 입금 금액 = {}", depositDto.getAccountId(), depositDto.getDepositAmount());
@@ -57,16 +54,12 @@ public class DepositServiceImpl implements DepositService {
         // 입금 정보 저장
         Deposit savedDeposit = depositRepository.save(deposit);
 
-        // 계좌 정보 업데이트
-        accountService.save(account);
-
         log.info("입금 처리 완료: 계좌 ID = {}, 입금 금액 = {}, 이전 금액 = {}, 새 금액 = {}",
                 depositDto.getAccountId(), deposit.getDepositAmount(), previousAmount, account.getAmount());
 
         return savedDeposit;
     }
 
-    @Override
     public List<Deposit> findDepositsByDateRange(LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         log.info("날짜 범위에 따른 입금 조회 시작: 시작일 = {}, 종료일 = {}, 페이지 = {}, 크기 = {}",
@@ -74,7 +67,6 @@ public class DepositServiceImpl implements DepositService {
         return depositRepository.findByDepositAtBetween(startDate, endDate, pageable);
     }
 
-    @Override
     public List<Deposit> findDepositsByAccountId(Long accountId) {
         log.info("계좌 ID에 따른 입금 조회 시작: 계좌 ID = {}", accountId);
         return depositRepository.findByAccountId(accountId);
