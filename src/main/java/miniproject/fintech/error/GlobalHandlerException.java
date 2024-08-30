@@ -1,5 +1,6 @@
 package miniproject.fintech.error;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.dto.ErrorResponse;
 import miniproject.fintech.type.ErrorType;
@@ -9,7 +10,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
 @ControllerAdvice //모든 컨트롤러에서 발생하는 예외를 처리 가능

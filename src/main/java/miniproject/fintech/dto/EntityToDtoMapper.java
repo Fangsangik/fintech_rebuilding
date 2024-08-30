@@ -1,5 +1,6 @@
 package miniproject.fintech.dto;
 
+import jakarta.persistence.EntityNotFoundException;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.Deposit;
 import miniproject.fintech.domain.Transaction;
@@ -9,7 +10,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityNotFoundException;
 
 @Component
 public class EntityToDtoMapper {
@@ -83,7 +83,7 @@ public class EntityToDtoMapper {
         Long sourceAccountId = transaction.getSourceAccountId(); // assuming Transaction has SourceAccount reference
 
         return TransactionDto.builder()
-                .bankMemberId(bankMemberId)
+                .id(transaction.getId())
                 .transactionAmount(transaction.getTransactionAmount())
                 .transactionType(transaction.getTransactionType())
                 .transactionStatus(transaction.getTransactionStatus())

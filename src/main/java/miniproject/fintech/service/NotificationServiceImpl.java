@@ -1,4 +1,4 @@
-package miniproject.fintech.service.notificationservice;
+package miniproject.fintech.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class NotificationServiceImpl implements NotificationService {
+public class NotificationServiceImpl {
 
-    @Override
+
     public void sendNotification(Transfer transfer) {
         if (transfer.getTransferStatus() == TransferStatus.COMPLETED) {
             // Implement email or SMS notification logic here
@@ -22,7 +22,6 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    @Override
     public void sendNotification(Deposit deposit) {
         // Implement email or SMS notification logic here
         log.info("입금 알림: {}", deposit.getMessage());

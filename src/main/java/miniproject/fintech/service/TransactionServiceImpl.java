@@ -1,8 +1,9 @@
-package miniproject.fintech.service.transactionservice;
+package miniproject.fintech.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.*;
+import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.TransactionDto;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.MemberRepository;
@@ -18,27 +19,29 @@ import static miniproject.fintech.type.ErrorType.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TransactionServiceImpl implements TransactionService {
+public class TransactionServiceImpl {
 
     private final TransactionRepository transactionRepository;
     private final MemberRepository memberRepository;
 
 
-    @Override
     @Transactional(readOnly = true)
-    public Optional<Transaction> getTransactionById(Long transactionId, BankMember bankMember) {
-        log.info("거래 조회 시작: 거래 ID = {}, 사용자 ID = {}", transactionId, bankMember.getId());
-        Transaction findTransaction = validationOfId(transactionId, bankMember);
-        log.info("거래 조회 완료: 거래 ID = {}, 거래 정보 = {}", transactionId, findTransaction);
-        return Optional.ofNullable(findTransaction);
+    public Optional<Transaction> getTransactionById(Long transactionId, BankMemberDto bankMemberDto) {
+        log.info("거래 조회 시작: 거래 ID = {}, 사용자 ID = {}", transactionId, bankMemberDto.getId());
+
+        // 유효성 검사를 위한 검증 메서드 호출
+        Transaction transaction = validationOfId(transactionId, bankMemberDto);
+
+        log.info("거래 조회 완료: 거래 ID = {}, 거래 정보 = {}", transactionId, transaction);
+        return Optional.of(transaction);
     }
 
-    @Override
+
     @Transactional
     public Transaction createTransaction(TransactionDto transactionDto) {
         log.info("거래 생성 시작: 거래 DTO = {}", transactionDto);
 
-        BankMember bankMember = memberRepository.findById(transactionDto.getBankMemberId())
+        BankMember bankMember = memberRepository.findById(transactionDto.getId())
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
 
         Transaction transaction = Transaction.builder()
@@ -61,11 +64,10 @@ public class TransactionServiceImpl implements TransactionService {
         return savedTransaction;
     }
 
-    @Override
     @Transactional
-    public Transaction updateTransaction(Long transactionId, TransactionDto transactionDto, BankMember bankMember) {
+    public Transaction updateTransaction(Long transactionId, TransactionDto transactionDto, BankMemberDto bankMemberDto) {
         log.info("거래 업데이트 시작: 거래 ID = {}, 거래 DTO = {}", transactionId, transactionDto);
-        Transaction existingTransaction = validationOfId(transactionId, bankMember);
+        Transaction existingTransaction = validationOfId(transactionId, bankMemberDto);
 
         // 업데이트할 거래 생성
         Transaction updatedTransaction = existingTransaction.toBuilder()
@@ -83,16 +85,14 @@ public class TransactionServiceImpl implements TransactionService {
         return savedTransaction;
     }
 
-    @Override
     @Transactional
-    public void deleteTransaction(Long transactionId, BankMember bankMember) {
-        log.info("거래 삭제 시작: 거래 ID = {}", transactionId);
-        Transaction existingTransaction = validationOfId(transactionId, bankMember);
+    public void deleteTransaction(TransactionDto transactionDto, BankMemberDto bankMember) {
+        log.info("거래 삭제 시작: 거래 ID = {}", transactionDto.getId());
+        Transaction existingTransaction = validationOfId(transactionDto.getId(), bankMember);
         transactionRepository.delete(existingTransaction);
-        log.info("거래 삭제 완료: 거래 ID = {}", transactionId);
+        log.info("거래 삭제 완료: 거래 ID = {}", transactionDto.getId());
     }
 
-    @Override
     @Transactional(readOnly = true)
     public List<Transaction> getAllTransaction() {
         log.info("모든 거래 조회 시작");
@@ -101,9 +101,14 @@ public class TransactionServiceImpl implements TransactionService {
         return transactions;
     }
 
-    private Transaction validationOfId(Long transactionId, BankMember bankMember) {
+    private Transaction validationOfId(Long transactionId, BankMemberDto bankMemberDto) {
         if (transactionId == null) {
             log.error("거래 ID가 null입니다.");
+            throw new CustomError(IN_CORRECT);
+        }
+
+        if (bankMemberDto.getId() == null) {
+            log.error("bankMember ID가 null입니다.");
             throw new CustomError(IN_CORRECT);
         }
 
@@ -114,8 +119,8 @@ public class TransactionServiceImpl implements TransactionService {
                 });
 
         // 사용자가 해당 거래에 접근할 수 있는 권한이 있는지 확인
-        if (!transaction.getBankMember().equals(bankMember)) {
-            log.error("권한이 없는 사용자 접근 시도: 거래 ID = {}, 사용자 ID = {}", transactionId, bankMember.getId());
+        if (!transaction.getBankMember().getId().equals(bankMemberDto.getId())) {
+            log.error("권한이 없는 사용자 접근 시도: 거래 ID = {}, 사용자 ID = {}", transactionId, bankMemberDto.getId());
             throw new CustomError(NOT_ALLOWED_ACCESS);
         }
 

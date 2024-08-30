@@ -3,7 +3,7 @@ package miniproject.fintech.controller;
 import lombok.RequiredArgsConstructor;
 import miniproject.fintech.domain.Transfer;
 import miniproject.fintech.dto.TransferDto;
-import miniproject.fintech.service.transactionservice.transferservice.TransferService;
+import miniproject.fintech.service.TransferServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class TransferController {
 
-    private final TransferService transferService;
+    private final TransferServiceImpl transferService;
 
     @PostMapping("/process")
     public ResponseEntity<Transfer> processTransfer

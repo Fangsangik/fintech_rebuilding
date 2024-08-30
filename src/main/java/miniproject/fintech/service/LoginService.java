@@ -1,19 +1,17 @@
 package miniproject.fintech.service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.DtoConverter;
-import miniproject.fintech.dto.EntityConverter;
 import miniproject.fintech.repository.MemberRepository;
-import miniproject.fintech.service.memberservice.MemberService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.util.Optional;
 
 @Slf4j
