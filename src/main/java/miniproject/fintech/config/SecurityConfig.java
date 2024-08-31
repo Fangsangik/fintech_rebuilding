@@ -1,37 +1,64 @@
 package miniproject.fintech.config;
+import miniproject.fintech.service.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    public SecurityConfig(JwtTokenUtil jwtTokenUtil) {
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
+
     @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public AuthenticationManager authenticationManager(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
+        AuthenticationManagerBuilder authenticationManagerBuilder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+        return authenticationManagerBuilder.build();
+    }
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter(UserDetailsService userDetailsService) {
+        return new JwtAuthenticationFilter(jwtTokenUtil, userDetailsService); // 생성자 주입으로 필터 생성
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
-                .csrf().disable() // CSRF 보호 비활성화 (API 테스트용)
                 .authorizeHttpRequests(auth -> auth
-                        // Publicly accessible URLs
-                        .requestMatchers("/api/login", "/register/create").permitAll()  // 로그인과 회원가입은 누구나 접근 가능
-                        .requestMatchers("/process", "/transaction/**", "/deposit/**", "/member/**", "/account/**").permitAll()
-                        //.hasAnyRole("ADMIN", "USER")  // 특정 URL은 ADMIN과 USER만 접근 가능
-                        .requestMatchers("/admin/**").hasRole("ADMIN")  // ADMIN만 접근 가능
-                        .anyRequest().authenticated()  // 그 외의 모든 요청은 인증 필요
+                        .requestMatchers("/api/login", "/register/create").permitAll()
+                        .requestMatchers("/transfer/process", "/transaction/**", "/deposit/**", "/member/**", "/account/**")
+                        .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT 또는 다른 토큰 기반 인증 사용 시 Stateless로 설정
-                .httpBasic(Customizer.withDefaults()); // 기본적인 HTTP Basic 인증 사용
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf().disable();
+
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
