@@ -30,12 +30,7 @@ public class BankMember {
     private long curAmount;
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
-
-
-    @ElementCollection(fetch = FetchType.LAZY) //컬랙션 필드를 직접 초기화, 엔티티를 통해 접근
-    @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "bank_member_id"))
-    @Column(name = "role")
-    private Set<String> roles = new HashSet<>();
+    private String roles;
 
     @Enumerated(EnumType.STRING)
     private Grade grade;

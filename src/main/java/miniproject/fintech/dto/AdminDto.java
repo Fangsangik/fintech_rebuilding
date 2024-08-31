@@ -19,5 +19,5 @@ public class AdminDto {
     private String email;
 
     private boolean superAdmin;
-    private Set<String> roles = new HashSet<>();
+    private String roles;
 }

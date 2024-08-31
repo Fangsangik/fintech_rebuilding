@@ -43,6 +43,6 @@ public class BankMemberDto {
     private Grade grade;
     private String address;
 
-    private final Set<String> roles = new HashSet<>();
+    private String roles;
     private final List<AccountDto> accounts = new ArrayList<>();
 }

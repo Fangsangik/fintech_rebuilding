@@ -23,8 +23,5 @@ public class Admin {
 
     private boolean superAdmin;
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "admin_role", joinColumns = @JoinColumn(name = "admin_id"))
-    @Column(name = "role")
-    private Set<String> roles = new HashSet<>();
+    private String roles;
 }
