@@ -31,6 +31,7 @@ public class EntityConverter {
                 .amount(bankMemberDto.getAmount())
                 .createdAt(bankMemberDto.getCreatedAt())
                 .deletedAt(bankMemberDto.getDeletedAt())
+                .roles(bankMemberDto.getRoles())
                 .build();
     }
 

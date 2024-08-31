@@ -52,6 +52,7 @@ public class DtoConverter {
                 .amount(bankMember.getAmount())
                 .curAmount(bankMember.getAmount())
                 .createdAt(bankMember.getCreatedAt())
+                .roles(bankMember.getRoles())
                 .deletedAt(bankMember.getDeletedAt())
                 .build();
     }
