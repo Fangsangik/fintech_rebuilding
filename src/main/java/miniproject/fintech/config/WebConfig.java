@@ -3,9 +3,11 @@ package miniproject.fintech.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -25,6 +27,13 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/login")
                 .allowedOrigins("http://allowed-origin.com")
                 .allowedMethods("POST", "GET", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+
+        // /member/** 경로에 대한 CORS 설정 추가
+        registry.addMapping("/member/**")
+                .allowedOrigins("http://allowed-origin.com")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
