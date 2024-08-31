@@ -73,6 +73,14 @@ public class MemoryMemberService {
 
         String encodedPassword = passwordEncoder.encode(bankMemberDto.getPassword());
 
+        // 기본 역할 'USER'를 설정
+        String memberRoles = "USER";
+
+        // 추가 역할이 있으면 쉼표로 구분하여 설정
+        if (roles != null && !roles.isEmpty()) {
+            memberRoles = String.join(",", roles); // Set을 쉼표로 구분된 문자열로 변환
+        }
+
         BankMember newBankMember = BankMember.builder()
                 .name(bankMemberDto.getName())
                 .email(bankMemberDto.getEmail())
@@ -81,7 +89,7 @@ public class MemoryMemberService {
                 .address(bankMemberDto.getAddress())
                 .createdAt(bankMemberDto.getCreatedAt())
                 .accountNumber(bankMemberDto.getAccountNumber())
-                .roles(roles)
+                .roles(memberRoles)
                 .build();
 
         BankMember savedMember = memberRepository.save(newBankMember);
