@@ -8,6 +8,7 @@ import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.TransactionDto;
 import miniproject.fintech.service.AdminService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final AdminService adminService;
@@ -53,16 +55,17 @@ public class AdminController {
 
     // 관리자 정보 수정
     @PutMapping("/updateAdmin/{id}")
-    public ResponseEntity<Admin> updateAdmin
+    public ResponseEntity<AdminDto> updateAdmin
     (@PathVariable Long id,
      @RequestBody AdminDto adminDto) {
-        Admin updatedAdmin = adminService.updateAdmin(id, adminDto);
+
+        AdminDto updatedAdmin = adminService.updateAdmin(id, adminDto);
         return ResponseEntity.ok(updatedAdmin);
     }
 
     // 관리자가 사용자 비밀번호 변경
     @PostMapping("/changeUserPassword")
-    public ResponseEntity<Void> changeUserPassword
+    public ResponseEntity<?> changeUserPassword
     (@RequestParam Long adminId,
      @RequestParam Long userId,
      @RequestParam String newPassword) {

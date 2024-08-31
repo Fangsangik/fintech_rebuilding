@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.dto.AccountDto;
 import miniproject.fintech.dto.BankMemberDto;
+import miniproject.fintech.dto.DtoConverter;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.MemberRepository;
+import miniproject.fintech.type.ErrorType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static miniproject.fintech.type.ErrorType.*;
 
@@ -24,30 +28,29 @@ public class MemoryMemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder  passwordEncoder;
+    private final DtoConverter converter;
 
-
-    public BankMember save(BankMember bankMember) {
-        log.info("은행 회원 저장: {}", bankMember);
-        return memberRepository.save(bankMember);
-    }
-
-
-    @Transactional(readOnly = true)
-    public Optional<BankMember> findById(Long id) {
-        if (id == null) {
-            log.error("findById 메서드에서 ID가 null입니다.");
-            throw new CustomError(ID_NULL);
-        }
+    // ID로 조회하여 DTO로 반환
+    public Optional<BankMemberDto> findById(Long id) {
         log.info("ID로 은행 회원 찾기: {}", id);
-        return memberRepository.findById(id);
+
+        BankMember bankMember = memberRepository.findById(id)
+                .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
+
+        log.info("은행 회원 찾기 성공: {}", bankMember);
+        return Optional.ofNullable(converter.convertToBankMemberDto(bankMember));
     }
 
-
-    public List<BankMember> findAll() {
+    // 모든 회원 목록을 DTO 목록으로 반환
+    public List<BankMemberDto> findAll() {
         log.info("모든 은행 회원 찾기");
-        return new ArrayList<>(memberRepository.findAll());
+        List<BankMember> members = memberRepository.findAll();
+        return members.stream()
+                .map(converter::convertToBankMemberDto)
+                .collect(Collectors.toList());
     }
 
+    // 비밀번호 변경
     public void userChangePassword(Long bankMemberId, String oldPassword, String newPassword) {
         log.info("사용자 비밀번호 변경 시도 : 사용자 ID {}", bankMemberId);
         BankMember member = memberRepository.findById(bankMemberId)
@@ -62,12 +65,12 @@ public class MemoryMemberService {
         log.info("비밀번호 변경 성공: 사용자 ID - {}", bankMemberId);
     }
 
+    // 회원 생성 메서드
     @Transactional
-    public BankMember createBankMember(BankMemberDto bankMemberDto, Set<String> roles) {
+    public BankMemberDto createBankMember(BankMemberDto bankMemberDto, Set<String> roles) {
         log.info("새 은행 회원 생성 요청: {}", bankMemberDto);
         validationCreateNewMember(bankMemberDto);
 
-        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(bankMemberDto.getPassword());
 
         BankMember newBankMember = BankMember.builder()
@@ -83,15 +86,14 @@ public class MemoryMemberService {
 
         BankMember savedMember = memberRepository.save(newBankMember);
         log.info("새 은행 회원 생성 성공: {}", savedMember);
-        return savedMember;
+        return converter.convertToBankMemberDto(savedMember);
     }
 
-
-
     @Transactional
-    public BankMember updateMember(BankMember bankMember, BankMemberDto updatedMemberDto) {
-        log.info("은행 회원 업데이트 요청: ID - {}, 내용 - {}", bankMember.getId(), updatedMemberDto);
-        BankMember existingMember = validationOfId(bankMember.getId());
+    public BankMemberDto updateMember(Long id, BankMemberDto updatedMemberDto) {
+        log.info("은행 회원 업데이트 요청: ID - {}, 내용 - {}", id, updatedMemberDto);
+
+        BankMember existingMember = validationOfId(id);  // 기존 회원 조회
 
         // 비밀번호 변경 로직 추가
         if (updatedMemberDto.getPassword() != null && !updatedMemberDto.getPassword().isEmpty()) {
@@ -99,18 +101,19 @@ public class MemoryMemberService {
             existingMember.setPassword(newPassword);
         }
 
-        BankMember updatedBankMember = existingMember.toBuilder()
-                .age(updatedMemberDto.getAge())
-                .name(updatedMemberDto.getName())
-                .address(updatedMemberDto.getAddress())
-                .email(updatedMemberDto.getEmail())
-                .build();
+        // 다른 정보 업데이트
+        existingMember.setName(updatedMemberDto.getName());
+        existingMember.setAddress(updatedMemberDto.getAddress());
+        existingMember.setEmail(updatedMemberDto.getEmail());
 
-        BankMember savedMember = memberRepository.save(updatedBankMember);
+        BankMember savedMember = memberRepository.save(existingMember);
         log.info("은행 회원 업데이트 성공: {}", savedMember);
-        return savedMember;
+
+        return converter.convertToBankMemberDto(savedMember);
     }
 
+
+    // 회원 삭제 메서드
     @Transactional
     public void deleteById(Long id, String password) {
         log.info("은행 회원 삭제 시도: ID - {}", id);
@@ -131,24 +134,29 @@ public class MemoryMemberService {
     }
 
     @Transactional(readOnly = true)
-    public List<Account> findAccountByMemberId(Long id) {
+    public List<AccountDto> findAccountByMemberId(Long id) {
         log.info("회원 ID로 계좌 찾기: ID - {}", id);
         BankMember member = memberRepository.findById(id)
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
 
-        return new ArrayList<>(member.getAccounts());
+        return member.getAccounts().stream()
+                .map(converter::convertToAccountDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public BankMember getBankMemberById(Long bankMemberId) {
+    public BankMemberDto getBankMemberById(Long bankMemberId) {
         log.info("회원 ID로 은행 회원 찾기: ID - {}", bankMemberId);
-        return memberRepository.findById(bankMemberId)
+        BankMember member = memberRepository.findById(bankMemberId)
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
+
+        return converter.convertToBankMemberDto(member);
     }
 
-    public Page<BankMember> findAll(Pageable pageable) {
+    public Page<BankMemberDto> findAll(Pageable pageable) {
         log.info("페이지를 사용하여 모든 은행 회원 찾기: {}", pageable);
-        return memberRepository.findAll(pageable);
+        Page<BankMember> page = memberRepository.findAll(pageable);
+        return page.map(converter::convertToBankMemberDto);
     }
 
     public void changePassword(Long id, String password) {

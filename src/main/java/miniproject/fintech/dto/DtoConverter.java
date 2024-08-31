@@ -10,6 +10,21 @@ import java.util.stream.Collectors;
 @Component
 public class DtoConverter {
 
+    public AdminDto convertToAdminDto(Admin admin) {
+        if (admin == null) {
+            return null;
+        }
+
+        return AdminDto.builder()
+                .id(admin.getId())
+                .password(admin.getPassword())
+                .name(admin.getName())
+                .email(admin.getEmail())
+                .roles(admin.getRoles())
+                .superAdmin(admin.isSuperAdmin())
+                .build();
+    }
+
 
     // 엔티티를 DTO로 변환
     public AccountDto convertToAccountDto(Account account) {
@@ -52,6 +67,14 @@ public class DtoConverter {
                 .depositStatus(deposit.getDepositStatus())
                 .message(deposit.getMessage())
                 .build();
+
+
+    }
+
+    public List<DepositDto> convertToDepositDtoList(List<Deposit> deposits) {
+        return deposits.stream()
+                .map(this::convertToDepositDto)
+                .collect(Collectors.toList());
     }
 
     public TransactionDto convertToTransactionDto(Transaction transaction) {

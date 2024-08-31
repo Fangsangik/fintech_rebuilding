@@ -19,6 +19,16 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addViewController("/").setViewName("home");
     }
 
+    //외부 도메인(예: 다른 웹사이트에서)에서 오는 경우, CORS 설정이 필요할 수 있디.
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/login")
+                .allowedOrigins("http://allowed-origin.com")
+                .allowedMethods("POST", "GET", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
+
     @Bean
     public HiddenHttpMethodFilter hiddenHttpMethodFilter() {
         return new HiddenHttpMethodFilter();

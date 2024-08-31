@@ -32,8 +32,8 @@ public class BankMember {
     private LocalDateTime deletedAt;
 
 
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "admin_id"))
+    @ElementCollection(fetch = FetchType.LAZY) //컬랙션 필드를 직접 초기화, 엔티티를 통해 접근
+    @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "bank_member_id"))
     @Column(name = "role")
     private Set<String> roles = new HashSet<>();
 
@@ -44,10 +44,10 @@ public class BankMember {
 
     private boolean isActive;
 
-    @OneToMany(mappedBy = "bankMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "bankMember",fetch = FetchType.LAZY ,cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Account> accounts = new ArrayList<>(); // 빈 리스트로 초기화
 
-    @OneToMany(mappedBy = "bankMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "bankMember", fetch = FetchType.LAZY ,cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions = new ArrayList<>();
 
 }

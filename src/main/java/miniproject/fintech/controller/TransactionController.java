@@ -12,22 +12,25 @@ import miniproject.fintech.service.TransactionServiceImpl;
 import miniproject.fintech.type.ErrorType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/transaction")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+
 public class TransactionController {
 
     private final TransactionServiceImpl transactionService;
     private final MemoryMemberService memberService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Transaction> getTransactionId
+    public ResponseEntity<TransactionDto> getTransactionId
             (@PathVariable Long id,
              @RequestParam BankMemberDto bankMemberDto) {
 
-        Transaction transactionById = transactionService.getTransactionById(id, bankMemberDto)
+        TransactionDto transactionById = transactionService.getTransactionById(id, bankMemberDto)
                 .orElseThrow(() -> new CustomError(ErrorType.TRANSACTION_NOT_FOUND));
 
 
@@ -35,14 +38,14 @@ public class TransactionController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Transaction> createTransaction
+    public ResponseEntity<TransactionDto> createTransaction
             (@Valid @RequestBody TransactionDto transactionDto) {
-        Transaction transaction = transactionService.createTransaction(transactionDto);
+        TransactionDto transaction = transactionService.createTransaction(transactionDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
     }
 
     @PostMapping("/update/{id}")
-    public ResponseEntity<Transaction> updateTransaction(
+    public ResponseEntity<TransactionDto> updateTransaction(
             @PathVariable Long id,
             @Valid
             @RequestBody CreateTransactionRequest request) {
@@ -50,7 +53,7 @@ public class TransactionController {
         TransactionDto transactionDto = request.getTransactionDto();
 
         // 거래를 업데이트
-        Transaction updatedTransaction = transactionService.updateTransaction(id, transactionDto, request.getBankMemberDto());
+        TransactionDto updatedTransaction = transactionService.updateTransaction(id, transactionDto, request.getBankMemberDto());
         return ResponseEntity.ok(updatedTransaction);
     }
 

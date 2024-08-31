@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.*;
 import miniproject.fintech.dto.BankMemberDto;
+import miniproject.fintech.dto.DtoConverter;
 import miniproject.fintech.dto.TransactionDto;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.MemberRepository;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static miniproject.fintech.type.ErrorType.*;
 
@@ -23,49 +25,37 @@ public class TransactionServiceImpl {
 
     private final TransactionRepository transactionRepository;
     private final MemberRepository memberRepository;
-
+    private final DtoConverter dtoConverter;
 
     @Transactional(readOnly = true)
-    public Optional<Transaction> getTransactionById(Long transactionId, BankMemberDto bankMemberDto) {
+    public Optional<TransactionDto> getTransactionById(Long transactionId, BankMemberDto bankMemberDto) {
         log.info("거래 조회 시작: 거래 ID = {}, 사용자 ID = {}", transactionId, bankMemberDto.getId());
 
         // 유효성 검사를 위한 검증 메서드 호출
         Transaction transaction = validationOfId(transactionId, bankMemberDto);
 
         log.info("거래 조회 완료: 거래 ID = {}, 거래 정보 = {}", transactionId, transaction);
-        return Optional.of(transaction);
+        return Optional.of(dtoConverter.convertToTransactionDto(transaction));
     }
 
-
     @Transactional
-    public Transaction createTransaction(TransactionDto transactionDto) {
+    public TransactionDto createTransaction(TransactionDto transactionDto) {
         log.info("거래 생성 시작: 거래 DTO = {}", transactionDto);
 
         BankMember bankMember = memberRepository.findById(transactionDto.getId())
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
 
-        Transaction transaction = Transaction.builder()
-                .transactionAmount(transactionDto.getTransactionAmount())
-                .transactionType(transactionDto.getTransactionType())
-                .transactionStatus(transactionDto.getTransactionStatus())
-                .transactedAt(transactionDto.getTransactedAt())
-                .curAmount(transactionDto.getCurAmount())
-                .referenceNumber(transactionDto.getReferenceNumber())
-                .currency(transactionDto.getCurrency())
-                .grade(transactionDto.getGrade())
-                .counterpartyInfo(transactionDto.getCounterpartyInfo())
-                .fee(transactionDto.getFee())
-                .bankMember(bankMember)
-                .build();
+        Transaction transaction = getTransaction(transactionDto, bankMember);
 
         Transaction savedTransaction = transactionRepository.save(transaction);
 
         log.info("거래 생성 완료: 거래 ID = {}", savedTransaction.getId());
-        return savedTransaction;
+        return dtoConverter.convertToTransactionDto(savedTransaction);
     }
 
+
     @Transactional
-    public Transaction updateTransaction(Long transactionId, TransactionDto transactionDto, BankMemberDto bankMemberDto) {
+    public TransactionDto updateTransaction(Long transactionId, TransactionDto transactionDto, BankMemberDto bankMemberDto) {
         log.info("거래 업데이트 시작: 거래 ID = {}, 거래 DTO = {}", transactionId, transactionDto);
         Transaction existingTransaction = validationOfId(transactionId, bankMemberDto);
 
@@ -82,7 +72,7 @@ public class TransactionServiceImpl {
         Transaction savedTransaction = transactionRepository.save(updatedTransaction);
 
         log.info("거래 업데이트 완료: 거래 ID = {}", savedTransaction.getId());
-        return savedTransaction;
+        return dtoConverter.convertToTransactionDto(savedTransaction);
     }
 
     @Transactional
@@ -94,11 +84,14 @@ public class TransactionServiceImpl {
     }
 
     @Transactional(readOnly = true)
-    public List<Transaction> getAllTransaction() {
+    public List<TransactionDto> getAllTransactions() {
         log.info("모든 거래 조회 시작");
         List<Transaction> transactions = transactionRepository.findAll();
+        List<TransactionDto> transactionDtos = transactions.stream()
+                .map(dtoConverter::convertToTransactionDto)
+                .collect(Collectors.toList());
         log.info("모든 거래 조회 완료: 거래 수 = {}", transactions.size());
-        return transactions;
+        return transactionDtos;
     }
 
     private Transaction validationOfId(Long transactionId, BankMemberDto bankMemberDto) {
@@ -124,6 +117,23 @@ public class TransactionServiceImpl {
             throw new CustomError(NOT_ALLOWED_ACCESS);
         }
 
+        return transaction;
+    }
+
+    private static Transaction getTransaction(TransactionDto transactionDto, BankMember bankMember) {
+        Transaction transaction = Transaction.builder()
+                .transactionAmount(transactionDto.getTransactionAmount())
+                .transactionType(transactionDto.getTransactionType())
+                .transactionStatus(transactionDto.getTransactionStatus())
+                .transactedAt(transactionDto.getTransactedAt())
+                .curAmount(transactionDto.getCurAmount())
+                .referenceNumber(transactionDto.getReferenceNumber())
+                .currency(transactionDto.getCurrency())
+                .grade(transactionDto.getGrade())
+                .counterpartyInfo(transactionDto.getCounterpartyInfo())
+                .fee(transactionDto.getFee())
+                .bankMember(bankMember)
+                .build();
         return transaction;
     }
 }

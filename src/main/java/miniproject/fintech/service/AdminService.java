@@ -36,6 +36,7 @@ public class AdminService {
     private final TransactionRepository transactionRepository;
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DtoConverter dtoConverter;
 
     @Transactional(readOnly = true)
     public List<BankMemberDto> getAllBankMembers(int pageNum, int pageSize) {
@@ -91,7 +92,7 @@ public class AdminService {
     }
 
     @Transactional
-    public Admin updateAdmin(Long id, AdminDto adminDto) {
+    public AdminDto updateAdmin(Long id, AdminDto adminDto) {
         log.info("관리자 정보 수정 요청: 관리자 ID - {}", id);
 
         Admin admin = adminRepository.findById(id)
@@ -115,7 +116,7 @@ public class AdminService {
         Admin savedAdmin = adminRepository.save(admin);
         log.info("관리자 정보 수정 완료: 관리자 ID - {}", savedAdmin.getId());
 
-        return savedAdmin;
+        return dtoConverter.convertToAdminDto(savedAdmin);
     }
 
     public void adminChangeUserPassword(Long adminId, Long userId, String newPassword) {

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.AccountDto;
+import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.DtoConverter;
 import miniproject.fintech.dto.EntityConverter;
 import miniproject.fintech.error.CustomError;
@@ -28,7 +29,7 @@ public class AccountServiceImpl {
     private final DtoConverter dtoConverter;
     private final EntityConverter entityConverter;
 
-
+    // ID로 계좌 조회 후 DTO 반환
     public Optional<AccountDto> findById(Long id) {
         log.info("계좌 조회 요청: ID = {}", id);
         Optional<Account> account = accountRepository.findById(id);
@@ -41,6 +42,7 @@ public class AccountServiceImpl {
         }
     }
 
+    // 모든 계좌 조회 후 DTO 리스트 반환
     public List<AccountDto> findAll() {
         log.info("모든 계좌 조회 요청");
         List<Account> accounts = accountRepository.findAll();
@@ -48,29 +50,31 @@ public class AccountServiceImpl {
         return dtoConverter.convertToAccountDtoList(accounts);
     }
 
+    // 회원에게 계좌 생성 후 DTO 반환
     @Transactional
     public AccountDto createAccountForMember(AccountDto accountDto, Long memberId) {
         log.info("회원 ID {}로 계좌 생성 요청: {}", memberId, accountDto);
 
-        // BankMember를 찾습니다.
-        BankMember bankMember = memberService.findById(memberId)
+        // 회원 조회 및 검증
+        BankMemberDto bankMemberDto = memberService.findById(memberId)
                 .orElseThrow(() -> {
                     log.error("회원 조회 실패: ID = {}", memberId);
                     return new CustomError(MEMBER_NOT_FOUND);
                 });
 
-        // 유효성 검사 및 계좌 생성
-        validationCheckMember(bankMember, accountDto);
+        // 계좌 및 회원 검증
+        validationCheckMember(bankMemberDto, accountDto);
 
-       Account account = entityConverter.convertToAccount(accountDto);
-       account.setBankMember(bankMember);
+        // DTO를 엔티티로 변환하여 계좌 생성
+        Account account = entityConverter.convertToAccount(accountDto);
+        account.setBankMember(entityConverter.convertToBankMember(bankMemberDto));
 
         Account savedAccount = accountRepository.save(account);
         log.info("계좌 생성 성공: {}", savedAccount);
         return dtoConverter.convertToAccountDto(savedAccount);
     }
 
-    private BankMember validationCheckMember(BankMember bankMember, AccountDto accountDto) {
+    private void validationCheckMember(BankMemberDto bankMember, AccountDto accountDto) {
         if (accountDto == null || bankMember == null) {
             log.error("회원 또는 계좌 DTO가 null입니다. 회원: {}, 계좌 DTO: {}", bankMember, accountDto);
             throw new CustomError(MUST_NOT_NULL);
@@ -82,9 +86,9 @@ public class AccountServiceImpl {
         }
 
         log.info("회원 및 계좌 DTO 유효성 검사 완료. 회원: {}, 계좌 DTO: {}", bankMember, accountDto);
-        return bankMember;
     }
 
+    // 계좌 삭제
     @Transactional
     public void delete(Long accountId) {
         log.info("계좌 삭제 요청: ID = {}", accountId);
@@ -104,18 +108,18 @@ public class AccountServiceImpl {
         log.info("계좌 삭제 성공: ID = {}", accountId);
     }
 
+    // 계좌 업데이트 후 DTO 반환
     @Transactional
     public AccountDto updateAccount(Long accountId, AccountDto updatedAccountDto) {
         log.info("계좌 업데이트 요청: ID = {}, 업데이트 내용: {}", accountId, updatedAccountDto);
         Account existingAccount = validationOfId(accountId);
 
-        Account updatedAccount = existingAccount.toBuilder()
-                .accountNumber(updatedAccountDto.getAccountNumber())
-                .amount(updatedAccountDto.getAmount())
-                .accountStatus(updatedAccountDto.getAccountStatus())
-                .build();
+        // 업데이트된 정보를 사용하여 기존 계좌 업데이트
+        existingAccount.setAccountNumber(updatedAccountDto.getAccountNumber());
+        existingAccount.setAmount(updatedAccountDto.getAmount());
+        existingAccount.setAccountStatus(updatedAccountDto.getAccountStatus());
 
-        Account savedAccount = accountRepository.save(updatedAccount);
+        Account savedAccount = accountRepository.save(existingAccount);
         log.info("계좌 업데이트 성공: {}", savedAccount);
         return dtoConverter.convertToAccountDto(savedAccount);
     }
@@ -133,6 +137,7 @@ public class AccountServiceImpl {
                 });
     }
 
+    // 계좌 잔액 조회
     public long getAccountBalance(Long id) {
         log.info("계좌 잔액 조회 요청: ID = {}", id);
         Account account = accountRepository.findById(id)
@@ -146,6 +151,7 @@ public class AccountServiceImpl {
         return balance;
     }
 
+    // 모든 계좌의 총 잔액 조회
     @Transactional(readOnly = true)
     public long getTotalAccountBalance() {
         log.info("총 계좌 잔액 조회 요청");
@@ -157,6 +163,7 @@ public class AccountServiceImpl {
         return totalBalance;
     }
 
+    // 계좌 존재 여부 확인
     public boolean existsById(Long id) {
         return accountRepository.existsById(id);
     }

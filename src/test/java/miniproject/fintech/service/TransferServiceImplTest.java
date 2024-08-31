@@ -74,7 +74,7 @@ class TransferServiceImplTest {
                 transferAmount, sourceAccount.getId(), destinationAccount.getId());
 
         // When: 송금 처리
-        Transfer savedTransfer = transferService.processTransfer(transferDto);
+        TransferDto savedTransfer = transferService.processTransfer(transferDto);
 
         log.info("송금 처리 완료. 저장된 송금 ID: {}", savedTransfer.getId());
 

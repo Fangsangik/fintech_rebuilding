@@ -62,7 +62,7 @@ class DepositServiceImplTest {
         log.info("입금 처리 시작: 입금액 {} 계좌 ID: {}", depositAmount, depositDto.getAccountId());
 
         // When: 입금 처리
-        Deposit savedDeposit = depositService.processDeposit(depositDto);
+        DepositDto savedDeposit = depositService.processDeposit(depositDto);
 
         log.info("입금 처리 완료. 저장된 입금 ID: {}", savedDeposit.getId());
 

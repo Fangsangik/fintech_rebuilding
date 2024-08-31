@@ -5,6 +5,8 @@ import miniproject.fintech.dto.BankMemberDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -20,4 +22,9 @@ public interface MemberRepository extends JpaRepository<BankMember, Long>{
 
     Optional<BankMember> findByEmail(String email);
 
+    @Query("SELECT m FROM BankMember m " +
+            "LEFT JOIN FETCH m.roles " +
+            "LEFT JOIN FETCH m.accounts " +
+            "WHERE m.id = :id")
+    Optional<BankMember> findByIdWithRolesAndAccounts(@Param("id") Long id);
 }

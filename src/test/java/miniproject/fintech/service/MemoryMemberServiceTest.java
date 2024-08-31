@@ -135,7 +135,7 @@ class MemoryMemberServiceTest {
                 .build();
 
         // When: createBankMember 메서드를 호출하여 새 BankMember를 생성
-        BankMember createdMember = memberService.createBankMember(bankMemberDto, bankMemberDto.getRoles());
+        BankMemberDto createdMember = memberService.createBankMember(bankMemberDto, bankMemberDto.getRoles());
 
         // Then: 생성된 BankMember가 null이 아니고, BankMemberDto의 필드와 일치해야 함
         assertNotNull(createdMember, "The created BankMember should not be null");
@@ -157,7 +157,7 @@ class MemoryMemberServiceTest {
                 .accountNumber("1234567890")
                 .build();
 
-        BankMember rst = memberService.createBankMember(bankMemberDto, bankMemberDto.getRoles());
+        BankMemberDto rst = memberService.createBankMember(bankMemberDto, bankMemberDto.getRoles());
         Long memberId = rst.getId();
 
         // 비밀번호가 틀렸을 때 CustomError가 발생해야 함

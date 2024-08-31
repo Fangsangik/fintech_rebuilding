@@ -24,7 +24,7 @@ public class Account {
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "bank_member_id")
     private BankMember bankMember;
 

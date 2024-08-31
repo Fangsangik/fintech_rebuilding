@@ -26,15 +26,10 @@ public class LoginService {
 
     public Optional<BankMemberDto> loginCheck(BankMemberDto bankMemberDto) {
         Optional<BankMember> findMember = memberRepository.findById(bankMemberDto.getId());
-        if (findMember.isPresent()) {
-            BankMember bankMember = findMember.get();
-            if (passwordEncoder.matches(bankMemberDto.getPassword(), bankMember.getPassword())) {
-                BankMemberDto rstBankMember = dtoConverter.convertToBankMemberDto(bankMember);
-                rstBankMember.setId(bankMember.getId());
-                rstBankMember.setPassword(bankMember.getPassword());
-
-                return Optional.of(rstBankMember);
-            }
+        if (findMember.isPresent() && passwordEncoder.matches(bankMemberDto.getPassword(), findMember.get().getPassword())) {
+            // 비밀번호가 일치하면 성공
+            BankMemberDto dto = dtoConverter.convertToBankMemberDto(findMember.get());
+            return Optional.of(dto);
         }
         return Optional.empty();
     }

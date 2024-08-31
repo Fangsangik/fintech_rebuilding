@@ -2,54 +2,63 @@ package miniproject.fintech.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.service.MemoryMemberService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
 import static miniproject.fintech.type.ErrorType.*;
 
 
+@Slf4j
 @RestController
 @RequestMapping("/member")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('USER')")
 public class MemberController {
 
     private final MemoryMemberService memberService;
 
+    // ID로 회원 조회
     @GetMapping("/{id}")
-    public ResponseEntity<BankMember> getMemberById(@PathVariable Long id) {
-        BankMember findMember = memberService.findById(id)
+    public ResponseEntity<BankMemberDto> getMemberById(@PathVariable Long id) {
+        log.info("회원 정보 요청 수신: ID={}", id);
+
+        BankMemberDto findMemberDto = memberService.findById(id)
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
-        return ResponseEntity.ok(findMember);
+        log.info("회원 정보 조회 성공: ID={}", id);
+
+        return ResponseEntity.ok(findMemberDto);
     }
 
+    // 회원 정보 업데이트
     @PostMapping("/update/{id}")
-    public ResponseEntity<BankMember> updateBankMember(
+    public ResponseEntity<BankMemberDto> updateBankMember(
             @PathVariable Long id,
             @Valid @RequestBody BankMemberDto bankMemberDto) {
-        BankMember existingBankMember = memberService.findById(id)
-                .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
+        log.info("회원 정보 업데이트 요청 수신: ID={}, 요청 데이터={}", id, bankMemberDto);
 
-        BankMember updatedMember = memberService.updateMember(existingBankMember, bankMemberDto);
-        return ResponseEntity.accepted().body(updatedMember);
+        BankMemberDto updatedMemberDto = memberService.updateMember(id, bankMemberDto);
+        log.info("회원 정보 업데이트 성공: ID={}", id);
+
+        return ResponseEntity.accepted().body(updatedMemberDto);
     }
 
+    // 회원 삭제
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteBankMember(
             @PathVariable Long id,
             @RequestParam String password) {
-        BankMember existingBankMember = memberService.findById(id)
-                .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
-
-        if (!existingBankMember.getPassword().equals(password)) {
-            throw new CustomError(PASSWORD_INCORRECT);
-        }
+        log.info("회원 삭제 요청 수신: ID={}", id);
 
         memberService.deleteById(id, password);
+        log.info("회원 삭제 성공: ID={}", id);
+
         return ResponseEntity.ok("Member deleted successfully");
     }
 }
