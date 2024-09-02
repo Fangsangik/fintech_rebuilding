@@ -21,7 +21,8 @@ public enum ErrorType {
     ACCOUNT_ID_NOT_FOUND("계좌 아이디가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     IN_CORRECT("잘못된 값입니다.", HttpStatus.BAD_REQUEST),
     GRADE_NOT_VIP("VIP 등급이 아닙니다.", HttpStatus.BAD_REQUEST),
-    ADMIN_NOT_FOUND("관리자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    ADMIN_NOT_FOUND("관리자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    TRANSFER_NOT_FOUND("해당 송금을 찾을 수 없습니다", HttpStatus.NOT_FOUND),;
 
     private final String message;
     private final HttpStatus status;
