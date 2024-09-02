@@ -3,15 +3,17 @@ package miniproject.fintech.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.dto.AccountDto;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.service.MemoryMemberService;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 
 import static miniproject.fintech.type.ErrorType.*;
 
@@ -60,7 +62,7 @@ public class MemberController {
     // ID로 회원 조회
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}")
-    @Cacheable(value = "fintechCache", key = "#id")
+    @Cacheable(value = "MemberCache", key = "#id") // ID로 회원 조회 시 캐싱
     public ResponseEntity<BankMemberDto> getMemberById(@PathVariable Long id) {
         log.info("회원 정보 요청 수신: ID={}", id);
 
@@ -86,6 +88,7 @@ public class MemberController {
     // 회원 정보 업데이트
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/update/{id}")
+    @CacheEvict(value = "MemberCache", key = "#id") // 회원 정보 업데이트 시 캐시 무효화
     public ResponseEntity<BankMemberDto> updateBankMember(
             @PathVariable Long id,
             @Valid @RequestBody BankMemberDto bankMemberDto) {
@@ -100,6 +103,7 @@ public class MemberController {
     // 회원 삭제
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/delete/{id}")
+    @CacheEvict(value = "MemberCache", key = "#id") // 회원 삭제 시 캐시 무효화
     public ResponseEntity<String> deleteBankMember(
             @PathVariable Long id,
             @RequestParam String password) {
