@@ -75,7 +75,7 @@ class TransactionServiceImplTest {
     @Test
     void getTransactionById() {
 
-        Optional<Transaction> findTransaction = transactionService.getTransactionById(transactionDto.getId(), bankMemberDto);
+        Optional<TransactionDto> findTransaction = transactionService.getTransactionById(transactionDto.getId(), bankMemberDto);
         assertTrue(findTransaction.isPresent());
         assertEquals(transactionDto.getId(), findTransaction.get().getId());
         assertEquals(transactionDto.getTransactionAmount(), findTransaction.get().getTransactionAmount());
@@ -86,9 +86,9 @@ class TransactionServiceImplTest {
     void getAllTransaction() {
 //        Transaction savedTransaction = transactionRepository.save(transaction); BeforeaEach에서 이미 저장
 
-        List<Transaction> allTransaction = transactionService.getAllTransaction();
+        List<TransactionDto> allTransaction = transactionService.getAllTransactions();
         assertNotNull(allTransaction, "Transaction List Must not be null");
-        assertTrue(allTransaction.size() > 0, "Transaction list should not be empty");
+        assertTrue(!allTransaction.isEmpty(), "Transaction list should not be empty");
 
         boolean containsTransaction = allTransaction.stream()
                 .anyMatch(t -> t.getId().equals(this.transactionDto.getId()));
@@ -111,7 +111,7 @@ class TransactionServiceImplTest {
                 .build();
 
         // When: 거래 업데이트 수행
-        Transaction updatedTransaction = transactionService.updateTransaction(transactionDto.getId(), transactionDto, bankMemberDto);
+        TransactionDto updatedTransaction = transactionService.updateTransaction(transactionDto.getId(), transactionDto, bankMemberDto);
 
         // Then: 업데이트 결과 검증
         assertNotNull(updatedTransaction, "updated transaction should not be null");
