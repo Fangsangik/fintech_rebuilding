@@ -15,4 +15,6 @@ public interface TransferRepository extends JpaRepository<Transfer, Long> {
 
     List<Transfer> findBySourceAccountId(Long accountId);
     Page<Transfer> findAll(Pageable pageable);
+
+    List<Transfer> findBySourceAccountIdOrDestinationAccountId(Long accountId, Long accountId1);
 }
