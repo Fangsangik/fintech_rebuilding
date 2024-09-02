@@ -28,6 +28,7 @@ public class DepositController {
     }
 
     @GetMapping("/by-range-date")
+    @Cacheable(value = "depositCache", key = "{#startDate, #endDate, #page, #size}")
     public ResponseEntity<List<DepositDto>> findDepositsByDateRange
             (@RequestParam LocalDateTime startDate,
              @RequestParam LocalDateTime endDate,
@@ -40,6 +41,7 @@ public class DepositController {
     }
 
     @GetMapping("/by-account/{accountId}")
+    @CacheEvict(value = "depositCache", allEntries = true) // 입금 후 모든 캐시 무효화
     public ResponseEntity<List<DepositDto>> findDepositsByAccountId
             (@PathVariable Long accountId) {
         List<DepositDto> deposits = depositService.findDepositsByAccountId(accountId);
