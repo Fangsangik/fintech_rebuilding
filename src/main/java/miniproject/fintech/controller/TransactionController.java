@@ -2,7 +2,7 @@ package miniproject.fintech.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import miniproject.fintech.domain.Transaction;
+import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.CreateTransactionRequest;
 import miniproject.fintech.dto.TransactionDto;
@@ -10,61 +10,71 @@ import miniproject.fintech.error.CustomError;
 import miniproject.fintech.service.MemoryMemberService;
 import miniproject.fintech.service.TransactionServiceImpl;
 import miniproject.fintech.type.ErrorType;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Slf4j
 @RestController
 @RequestMapping("/transaction")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-
 public class TransactionController {
 
     private final TransactionServiceImpl transactionService;
     private final MemoryMemberService memberService;
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<TransactionDto> getTransactionId
-            (@PathVariable Long id,
-             @RequestParam BankMemberDto bankMemberDto) {
+    @Cacheable(value = "transactionsCache", key = "#id")
+    public ResponseEntity<TransactionDto> getTransactionById(
+            @PathVariable Long id,
+            @RequestParam BankMemberDto bankMemberDto) {
 
         TransactionDto transactionById = transactionService.getTransactionById(id, bankMemberDto)
                 .orElseThrow(() -> new CustomError(ErrorType.TRANSACTION_NOT_FOUND));
 
-
         return ResponseEntity.status(HttpStatus.OK).body(transactionById);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/create")
-    public ResponseEntity<TransactionDto> createTransaction
-            (@Valid @RequestBody TransactionDto transactionDto) {
+    @CacheEvict(value = "transactionsCache", allEntries = true)
+    public ResponseEntity<TransactionDto> createTransaction(
+            @Valid @RequestBody TransactionDto transactionDto) {
+
         TransactionDto transaction = transactionService.createTransaction(transactionDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/update/{id}")
+    @CacheEvict(value = "transactionsCache", key = "#id")
     public ResponseEntity<TransactionDto> updateTransaction(
             @PathVariable Long id,
-            @Valid
-            @RequestBody CreateTransactionRequest request) {
+            @Valid @RequestBody CreateTransactionRequest request) {
 
         TransactionDto transactionDto = request.getTransactionDto();
-
-        // 거래를 업데이트
         TransactionDto updatedTransaction = transactionService.updateTransaction(id, transactionDto, request.getBankMemberDto());
         return ResponseEntity.ok(updatedTransaction);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @DeleteMapping("/delete/{id}")
+    @CacheEvict(value = "transactionsCache", key = "#id")
     public ResponseEntity<String> deleteTransaction(
-            @Valid
-            @RequestBody TransactionDto transactionDto,
-            @RequestBody BankMemberDto bankMemberDto
-    ) {
-        transactionService.deleteTransaction(transactionDto, bankMemberDto);
+            @PathVariable Long id,
+            @Valid @RequestBody TransactionDto transactionDto,
+            @RequestBody BankMemberDto bankMemberDto) {
 
+        transactionService.deleteTransaction(transactionDto, bankMemberDto);
         return ResponseEntity.ok("Transaction deleted successfully");
     }
 
@@ -118,5 +128,6 @@ public class TransactionController {
         Page<TransactionDto> transactions = transactionService.getTransactionsByDateRange(startDate, endDate, pageable);
         log.info("기간별 거래 조회 성공, 거래 수: {}", transactions.getTotalElements());
 
+        return ResponseEntity.ok(transactions);
     }
 }
