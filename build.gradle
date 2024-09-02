@@ -41,6 +41,15 @@ dependencies {
 	implementation 'com.sun.xml.bind:jaxb-core:2.3.0'
 	implementation 'com.sun.xml.bind:jaxb-impl:2.3.0'
 
+	// Spring Boot Starter for Cache
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+	// JCache (JSR-107) API - Ehcache와의 통합을 위해 필요
+	implementation 'javax.cache:cache-api:1.1.1'
+
+	// Ehcache 3.x 라이브러리
+	implementation 'org.ehcache:ehcache:3.10.8'
+
 	testImplementation 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 
