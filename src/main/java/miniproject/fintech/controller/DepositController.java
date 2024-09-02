@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import miniproject.fintech.domain.Deposit;
 import miniproject.fintech.dto.DepositDto;
 import miniproject.fintech.service.DepositServiceImpl;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,11 +17,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/deposit")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('USER')")
 public class DepositController {
 
     private final DepositServiceImpl depositService;
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/process")
     @CacheEvict(value = "depositCache", allEntries = true) // 입금 처리 시 캐시 무효화
     public ResponseEntity<DepositDto> processDeposit
@@ -28,6 +30,7 @@ public class DepositController {
         return ResponseEntity.status(HttpStatus.CREATED).body(deposit);
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/by-range-date")
     @Cacheable(value = "depositCache", key = "{#startDate, #endDate, #page, #size}")
     public ResponseEntity<List<DepositDto>> findDepositsByDateRange
@@ -41,6 +44,7 @@ public class DepositController {
         return ResponseEntity.ok(deposits);
     }
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/by-account/{accountId}")
     @CacheEvict(value = "depositCache", allEntries = true) // 입금 후 모든 캐시 무효화
     public ResponseEntity<List<DepositDto>> findDepositsByAccountId
