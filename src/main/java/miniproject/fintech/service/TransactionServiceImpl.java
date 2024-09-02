@@ -38,6 +38,17 @@ public class TransactionServiceImpl {
         return Optional.of(dtoConverter.convertToTransactionDto(transaction));
     }
 
+    @Transactional(readOnly = true)
+    public List<TransactionDto> getAllTransactionsByMemberId(Long memberId) {
+        log.info("특정 회원의 모든 거래 조회 시작: 회원 ID = {}", memberId);
+        List<Transaction> transactions = transactionRepository.findByBankMemberId(memberId);
+        List<TransactionDto> transactionDtos = transactions.stream()
+                .map(dtoConverter::convertToTransactionDto)
+                .collect(Collectors.toList());
+        log.info("특정 회원의 모든 거래 조회 완료: 거래 수 = {}", transactions.size());
+        return transactionDtos;
+    }
+
     @Transactional
     public TransactionDto createTransaction(TransactionDto transactionDto) {
         log.info("거래 생성 시작: 거래 DTO = {}", transactionDto);
@@ -91,6 +102,42 @@ public class TransactionServiceImpl {
                 .map(dtoConverter::convertToTransactionDto)
                 .collect(Collectors.toList());
         log.info("모든 거래 조회 완료: 거래 수 = {}", transactions.size());
+        return transactionDtos;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TransactionDto> getTransactionsByAccountId(Long accountId, Pageable pageable) {
+        log.info("계좌별 거래 조회 시작: 계좌 ID = {}", accountId);
+        Page<Transaction> transactions = transactionRepository.findByAccount_Id(accountId, pageable);
+        Page<TransactionDto> transactionDtos = transactions.map(dtoConverter::convertToTransactionDto);
+        log.info("계좌별 거래 조회 완료: 거래 수 = {}", transactions.getTotalElements());
+        return transactionDtos;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TransactionDto> getTransactionsByMemberId(Long memberId, Pageable pageable) {
+        log.info("회원별 거래 조회 시작: 회원 ID = {}", memberId);
+        Page<Transaction> transactions = transactionRepository.findByBankMemberId(memberId, pageable);
+        Page<TransactionDto> transactionDtos = transactions.map(dtoConverter::convertToTransactionDto);
+        log.info("회원별 거래 조회 완료: 거래 수 = {}", transactions.getTotalElements());
+        return transactionDtos;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TransactionDto> getAllTransactions(Pageable pageable) {
+        log.info("모든 거래 조회 (페이징) 시작");
+        Page<Transaction> transactions = transactionRepository.findAll(pageable);
+        Page<TransactionDto> transactionDtos = transactions.map(dtoConverter::convertToTransactionDto);
+        log.info("모든 거래 조회 완료: 거래 수 = {}", transactions.getTotalElements());
+        return transactionDtos;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TransactionDto> getTransactionsByDateRange(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        log.info("기간별 거래 조회 시작: 시작일 = {}, 종료일 = {}", startDate, endDate);
+        Page<Transaction> transactions = transactionRepository.findByTransactedAtBetween(startDate, endDate, pageable);
+        Page<TransactionDto> transactionDtos = transactions.map(dtoConverter::convertToTransactionDto);
+        log.info("기간별 거래 조회 완료: 거래 수 = {}", transactions.getTotalElements());
         return transactionDtos;
     }
 
