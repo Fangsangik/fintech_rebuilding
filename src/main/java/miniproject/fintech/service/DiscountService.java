@@ -4,10 +4,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.error.CustomError;
+import miniproject.fintech.repository.DepositRepository;
 import miniproject.fintech.repository.DiscountRepository;
 import miniproject.fintech.type.Grade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 
 import static miniproject.fintech.type.ErrorType.*;
 
@@ -19,10 +21,12 @@ public class DiscountService {
     private final DiscountRepository discountRepository;
 
     private static final double DISCOUNT_RATE = 0.01;
+    private final DepositRepository depositRepository;
 
     @Autowired
-    public DiscountService(DiscountRepository discountRepository) {
+    public DiscountService(DiscountRepository discountRepository, DepositRepository depositRepository) {
         this.discountRepository = discountRepository;
+        this.depositRepository = depositRepository;
     }
 
     public void applyDiscount(Long memberId, String password) {
