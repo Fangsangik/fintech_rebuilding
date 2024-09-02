@@ -21,6 +21,7 @@ public class DepositController {
     private final DepositServiceImpl depositService;
 
     @PostMapping("/process")
+    @CacheEvict(value = "depositCache", allEntries = true) // 입금 처리 시 캐시 무효화
     public ResponseEntity<DepositDto> processDeposit
             (@RequestBody DepositDto depositDto) {
         DepositDto deposit = depositService.processDeposit(depositDto);
