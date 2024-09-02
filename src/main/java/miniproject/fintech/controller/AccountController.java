@@ -2,6 +2,7 @@ package miniproject.fintech.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.AccountDto;
 import miniproject.fintech.dto.BankMemberDto;
@@ -10,33 +11,73 @@ import miniproject.fintech.dto.CreateAccountRequest;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.service.AccountServiceImpl;
 import miniproject.fintech.service.MemoryMemberService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import static miniproject.fintech.type.ErrorType.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/account")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('USER')")
 public class AccountController {
 
     private final AccountServiceImpl accountService;
     private final MemoryMemberService memberService;
 
-    // ID로 계좌 조회
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/all")
+    @Cacheable(value = "accountsCache", key = "'allAccounts'")
+    public ResponseEntity<List<AccountDto>> getAllAccounts() {
+        log.info("모든 계좌 조회 요청 수신");
+
+        List<AccountDto> allAccounts = accountService.findAll();
+        log.info("모든 계좌 조회 성공, 계좌 수: {}", allAccounts.size());
+
+        return ResponseEntity.ok(allAccounts);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/{id}/balance")
+    @Cacheable(value = "accountsCache", key = "#id + '_balance'")
+    public ResponseEntity<Long> getBalance(@PathVariable("id") Long id) {
+        log.info("계좌 잔액 조회 요청 수신: ID={}", id);
+        long accountBalance = accountService.getAccountBalance(id);
+        log.info("계좌 잔액 조회 성공: ID={}, 잔액={}", id, accountBalance);
+        return ResponseEntity.ok(accountBalance);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/exists/{id}")
+    @Cacheable(value = "accountsCache", key = "#id + '_exists'")
+    public ResponseEntity<Boolean> exists(@PathVariable("id") Long id) {
+        log.info("계좌 존재 여부 확인 요청 수신: ID={}", id);
+
+        boolean exists = accountService.existsById(id);
+        log.info("계좌 존재 여부 확인 결과: ID={}, 존재 여부: {}", id, exists);
+
+        return ResponseEntity.ok(exists);
+    }
+
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}")
+    @Cacheable(value = "accountsCache", key = "#id")
     public ResponseEntity<AccountDto> getAccountById(@PathVariable Long id) {
         AccountDto accountDto = accountService.findById(id)
                 .orElseThrow(() -> new CustomError(ACCOUNT_NOT_FOUND));
         return ResponseEntity.ok(accountDto);
     }
 
-    // 계좌 생성
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/create")
+    @CacheEvict(value = "accountsCache", allEntries = true) // 계좌 생성 시 캐시 무효화
     public ResponseEntity<AccountDto> createAccount(@Valid @RequestBody CreateAccountRequest request) {
         // Request 객체에서 필요한 정보 추출
         BankMemberDto bankMemberDto = request.getBankMemberDto();
@@ -59,24 +100,27 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAccountDto);
     }
 
-    // 계좌 업데이트
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/update/{id}")
+    @CacheEvict(value = "accountsCache", key = "#id") // 계좌 업데이트 시 해당 계좌 캐시 무효화
     public ResponseEntity<AccountDto> updateAccount(@PathVariable Long id, @Valid @RequestBody AccountDto accountDto) {
         validation(id);  // 계좌 유효성 검증
         AccountDto updatedAccountDto = accountService.updateAccount(id, accountDto);
         return ResponseEntity.ok(updatedAccountDto);
     }
 
-    // 계좌 삭제
+    @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/delete/{id}")
+    @CacheEvict(value = "accountsCache", key = "#id") // 계좌 삭제 시 해당 계좌 캐시 무효화
     public ResponseEntity<String> deleteAccount(@PathVariable Long id) {
         validation(id);  // 계좌 유효성 검증
         accountService.delete(id);
         return ResponseEntity.ok("계좌가 성공적으로 삭제되었습니다.");
     }
 
-    // 총 계좌 잔액 조회
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/total-balance")
+    @Cacheable(value = "accountsCache", key = "'totalBalance'")
     public ResponseEntity<Long> getTotalAccountBalance() {
         long totalAccountBalance = accountService.getTotalAccountBalance();
         return ResponseEntity.ok(totalAccountBalance);
@@ -88,3 +132,4 @@ public class AccountController {
                 .orElseThrow(() -> new CustomError(ACCOUNT_NOT_FOUND));
     }
 }
+
