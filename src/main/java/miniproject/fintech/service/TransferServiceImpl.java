@@ -15,6 +15,9 @@ import miniproject.fintech.type.TransferStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static miniproject.fintech.type.ErrorType.*;
 
 @Slf4j
@@ -46,6 +49,42 @@ public class TransferServiceImpl {
         return savedTransferDto;
     }
 
+    @Transactional(readOnly = true)
+    public TransferDto getTransferById(Long transferId) {
+        log.info("송금 기록 조회 시작: 송금 ID = {}", transferId);
+
+        Transfer transfer = transferRepository.findById(transferId)
+                .orElseThrow(() -> new CustomError(TRANSFER_NOT_FOUND));
+
+        log.info("송금 기록 조회 완료: 송금 ID = {}, 송금 정보 = {}", transferId, transfer);
+        return dtoConverter.convertToTransferDto(transfer);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TransferDto> getTransfersByAccountId(Long accountId) {
+        log.info("특정 계좌의 모든 송금 기록 조회 시작: 계좌 ID = {}", accountId);
+
+        List<Transfer> transfers = transferRepository.findBySourceAccountIdOrDestinationAccountId(accountId, accountId);
+        List<TransferDto> transferDtos = transfers.stream()
+                .map(dtoConverter::convertToTransferDto)
+                .collect(Collectors.toList());
+
+        log.info("특정 계좌의 모든 송금 기록 조회 완료: 계좌 ID = {}, 송금 수 = {}", accountId, transferDtos.size());
+        return transferDtos;
+    }
+
+    @Transactional
+    public void deleteTransferById(Long transferId) {
+        log.info("송금 기록 삭제 시작: 송금 ID = {}", transferId);
+
+        Transfer transfer = transferRepository.findById(transferId)
+                .orElseThrow(() -> new CustomError(TRANSFER_NOT_FOUND));
+
+        transferRepository.delete(transfer);
+
+        log.info("송금 기록 삭제 완료: 송금 ID = {}", transferId);
+    }
+
     private AccountDto getAccountDtoById(Long accountId, String accountType) {
         return accountRepository.findById(accountId)
                 .map(dtoConverter::convertToAccountDto)
@@ -56,7 +95,6 @@ public class TransferServiceImpl {
     }
 
     private TransferDto executeTransfer(TransferDto transferDto, AccountDto sourceAccountDto, AccountDto destinationAccountDto) {
-        // Transfer 엔티티 생성
         Transfer transfer = new Transfer();
         transfer.setTransferAmount(transferDto.getTransferAmount());
         transfer.setTransferAt(transferDto.getTransferAt());
@@ -65,18 +103,13 @@ public class TransferServiceImpl {
         transfer.setDestinationAccountId(transferDto.getDestinationAccountId());
         transfer.setMessage("송금이 실패되었습니다.");
 
-        // 송금 가능 여부 확인 후 송금
         if (sourceAccountDto.getAmount() >= transferDto.getTransferAmount()) {
-            // 소스 계좌에서 금액 차감
             sourceAccountDto.setAmount(sourceAccountDto.getAmount() - transferDto.getTransferAmount());
-            // 목적 계좌에 돈 추가
             destinationAccountDto.setAmount(destinationAccountDto.getAmount() + transferDto.getTransferAmount());
 
-            // 계좌 정보 업데이트
             accountRepository.save(entityConverter.convertToAccount(sourceAccountDto));
             accountRepository.save(entityConverter.convertToAccount(destinationAccountDto));
 
-            // 송금 성공 상태 업데이트
             transfer.setTransferStatus(TransferStatus.COMPLETED);
             transfer.setMessage("송금이 완료되었습니다.");
 
@@ -88,9 +121,8 @@ public class TransferServiceImpl {
                     transferDto.getTransferAmount(), transferDto.getSourceAccountId(), sourceAccountDto.getAmount());
         }
 
-        // 송금 기록 저장
         Transfer savedTransfer = transferRepository.save(transfer);
-
         return dtoConverter.convertToTransferDto(savedTransfer);
     }
 }
+
