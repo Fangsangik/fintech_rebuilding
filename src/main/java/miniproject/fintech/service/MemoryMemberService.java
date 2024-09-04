@@ -67,7 +67,7 @@ public class MemoryMemberService {
 
     // 회원 생성 메서드
     @Transactional
-    public BankMemberDto createBankMember(BankMemberDto bankMemberDto, Set<String> roles) {
+    public BankMember createBankMember(BankMemberDto bankMemberDto, String roles) {
         log.info("새 은행 회원 생성 요청: {}", bankMemberDto);
         // 비밀번호 유효성 검사
         if (bankMemberDto.getPassword() == null || bankMemberDto.getPassword().isEmpty()) {
