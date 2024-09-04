@@ -118,6 +118,10 @@ public class MemoryMemberService {
         existingMember.setName(updatedMemberDto.getName());
         existingMember.setAddress(updatedMemberDto.getAddress());
         existingMember.setEmail(updatedMemberDto.getEmail());
+        existingMember.setAge(updatedMemberDto.getAge());
+        existingMember.setCurAmount(updatedMemberDto.getCurAmount());
+        existingMember.setBirth(updatedMemberDto.getBirth());
+        existingMember.setGrade(updatedMemberDto.getGrade());
 
         BankMember savedMember = memberRepository.save(existingMember);
         log.info("은행 회원 업데이트 성공: {}", savedMember);
