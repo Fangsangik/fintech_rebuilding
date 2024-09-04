@@ -17,11 +17,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class HomeController {
 
-    // 홈 페이지 정보 반환
-    @GetMapping
-    public ResponseEntity<String> home() {
-        String homeMessage = "Welcome to the home page!";
-        return ResponseEntity.ok(homeMessage);
+    @GetMapping("/")
+    public String home() {
+        return "Hello World";
     }
 
     // 시스템 상태 확인
