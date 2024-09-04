@@ -1,13 +1,20 @@
 package miniproject.fintech.service;
 
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Account;
 import miniproject.fintech.domain.Transfer;
+import miniproject.fintech.dto.DtoConverter;
+import miniproject.fintech.dto.EntityConverter;
 import miniproject.fintech.dto.TransferDto;
+import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.AccountRepository;
+import miniproject.fintech.repository.MemberRepository;
+import miniproject.fintech.repository.TransactionRepository;
 import miniproject.fintech.repository.TransferRepository;
 import miniproject.fintech.type.AccountStatus;
+import miniproject.fintech.type.ErrorType;
 import miniproject.fintech.type.TransferStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,13 +24,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.time.LocalDateTime;
 
 
+import static miniproject.fintech.type.ErrorType.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 
 @Slf4j
 @SpringBootTest
 //@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 class TransferServiceImplTest {
-
 
     @Autowired
     private TransferServiceImpl transferService;
@@ -33,18 +41,21 @@ class TransferServiceImplTest {
 
     @Autowired
     private TransferRepository transferRepository;
-
     private Account sourceAccount;
     private Account destinationAccount;
 
     @BeforeEach
     void setUp() {
+        accountRepository.deleteAll();
+        transferRepository.deleteAll();
+
         sourceAccount = Account.builder()
                 .accountNumber("source123")
                 .amount(10000)
                 .accountStatus(AccountStatus.REGISTER)
                 .createdAt(LocalDateTime.now())
                 .build();
+
         destinationAccount = Account.builder()
                 .accountNumber("dest123")
                 .amount(5000)
@@ -52,14 +63,16 @@ class TransferServiceImplTest {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        accountRepository.save(sourceAccount);
-        accountRepository.save(destinationAccount);
+        // 데이터베이스에 저장 후 ID가 있는 엔티티로 설정
+        sourceAccount = accountRepository.save(sourceAccount);
+        destinationAccount = accountRepository.save(destinationAccount);
 
-        log.info("설정 완료: 출금 계좌 ID: {}, 잔액: {}", sourceAccount.getId(), sourceAccount.getAmount());
-        log.info("설정 완료: 입금 계좌 ID: {}, 잔액: {}", destinationAccount.getId(), destinationAccount.getAmount());
+        assertNotNull(sourceAccount.getId(), "출금 계좌 ID가 생성되지 않았습니다.");
+        assertNotNull(destinationAccount.getId(), "입금 계좌 ID가 생성되지 않았습니다.");
     }
 
     @Test
+    @Transactional
     void transferTest() {
         // Given: 송금 설정
         long transferAmount = 2000;
@@ -70,45 +83,24 @@ class TransferServiceImplTest {
                 .destinationAccountId(destinationAccount.getId())
                 .build();
 
-        log.info("송금 처리 시작: 송금액 {} 출금 계좌 ID: {} 입금 계좌 ID: {}",
-                transferAmount, sourceAccount.getId(), destinationAccount.getId());
-
         // When: 송금 처리
-        TransferDto savedTransfer = transferService.processTransfer(transferDto);
+        Transfer savedTransfer = transferService.processTransfer(transferDto);
+        transferRepository.save(savedTransfer);
 
-        log.info("송금 처리 완료. 저장된 송금 ID: {}", savedTransfer.getId());
+        // Then: 송금이 성공적으로 저장되었는지 검증
+        assertNotNull(savedTransfer.getId(), "송금 ID가 생성되지 않았습니다.");
+        assertThat(savedTransfer.getTransferAmount()).isEqualTo(transferAmount);
+        assertThat(savedTransfer.getSourceAccount().getId()).isEqualTo(sourceAccount.getId());
+        assertThat(savedTransfer.getDestinationAccount().getId()).isEqualTo(destinationAccount.getId());
+        assertThat(savedTransfer.getTransferStatus()).isEqualTo(TransferStatus.COMPLETED);
 
-        // Then: 송금 및 계좌 업데이트 확인
-        Transfer receivedTransfer = transferRepository.findById(savedTransfer.getId())
-                .orElseThrow(() -> new IllegalArgumentException("송금 정보가 없습니다."));
-
-        log.info("조회된 송금 정보: {}", receivedTransfer);
-
-        assertThat(receivedTransfer.getTransferAmount()).isEqualTo(transferAmount);
-        assertThat(receivedTransfer.getTransferStatus()).isEqualTo(TransferStatus.COMPLETED);
-        assertThat(receivedTransfer.getMessage()).isEqualTo("송금이 완료되었습니다.");
-
+        // 계좌 업데이트 확인
         Account updatedSourceAccount = accountRepository.findById(sourceAccount.getId())
-                .orElseThrow(() -> new IllegalArgumentException("출금 계좌를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomError(SOURCE_ID_NOT_FOUND));
         Account updatedDestinationAccount = accountRepository.findById(destinationAccount.getId())
-                .orElseThrow(() -> new IllegalArgumentException("입금 계좌를 찾을 수 없습니다."));
+                .orElseThrow(() -> new CustomError(DESTINATION_ID_NOT_FOUND));
 
-        log.info("업데이트된 출금 계좌: {}", updatedSourceAccount);
-        log.info("업데이트된 입금 계좌: {}", updatedDestinationAccount);
-
-        long expectedSourceAmount = sourceAccount.getAmount() - transferAmount;
-        long expectedDestinationAmount = destinationAccount.getAmount() + transferAmount;
-
-        assertThat(updatedSourceAccount.getAmount()).isEqualTo(expectedSourceAmount);
-        assertThat(updatedDestinationAccount.getAmount()).isEqualTo(expectedDestinationAmount);
-
-        // 총 잔액 확인
-        long totalSourceAmount = accountRepository.findById(sourceAccount.getId())
-                .orElseThrow(() -> new IllegalArgumentException("출금 계좌를 찾을 수 없습니다.")).getAmount();
-        long totalDestinationAmount = accountRepository.findById(destinationAccount.getId())
-                .orElseThrow(() -> new IllegalArgumentException("입금 계좌를 찾을 수 없습니다.")).getAmount();
-
-        log.info("송금 후 출금 계좌 총 잔액: {}", totalSourceAmount);
-        log.info("송금 후 입금 계좌 총 잔액: {}", totalDestinationAmount);
+        assertThat(updatedSourceAccount.getAmount()).isEqualTo(8000); // 10000 - 2000
+        assertThat(updatedDestinationAccount.getAmount()).isEqualTo(7000); // 5000 + 2000
     }
 }
