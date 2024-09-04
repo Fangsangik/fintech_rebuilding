@@ -22,7 +22,10 @@ public enum ErrorType {
     IN_CORRECT("잘못된 값입니다.", HttpStatus.BAD_REQUEST),
     GRADE_NOT_VIP("VIP 등급이 아닙니다.", HttpStatus.BAD_REQUEST),
     ADMIN_NOT_FOUND("관리자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    TRANSFER_NOT_FOUND("해당 송금을 찾을 수 없습니다", HttpStatus.NOT_FOUND),;
+    TRANSFER_NOT_FOUND("해당 송금을 찾을 수 없습니다", HttpStatus.NOT_FOUND),
+    PASSWORD_MUST_NOT_NULL("비밀번호가 null이면 안됩니다.", HttpStatus.BAD_REQUEST ),
+    NOT_ENOUGH_MONEY("금액이 부족합니다.", HttpStatus.BAD_REQUEST),
+    SOURCE_ACCOUNT_DESTINATION_ACCOUNT_SHOULD_NOT_SAME("출금 계좌와 입금 계좌가 동일하면 안됩니다.", HttpStatus.BAD_REQUEST);
 
     private final String message;
     private final HttpStatus status;
