@@ -16,8 +16,6 @@ import java.util.Optional;
 @Repository
 public interface MemberRepository extends JpaRepository<BankMember, Long>{
 
-    Optional<BankMember> findByAccountNumber(String accountNumber);
-
     Page<BankMember> findAll(Pageable pageable);
 
     Optional<BankMember> findByEmail(String email);
