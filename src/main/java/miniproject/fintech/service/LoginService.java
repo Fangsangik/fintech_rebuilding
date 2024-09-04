@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -24,7 +25,6 @@ import java.util.Set;
 public class LoginService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final DtoConverter dtoConverter;
     private final JwtTokenUtil jwtTokenUtil;
 
 
@@ -35,7 +35,7 @@ public class LoginService {
         Optional<BankMember> findMember = memberRepository.findById(bankMemberDto.getId());
         if (findMember.isPresent() && passwordEncoder.matches(bankMemberDto.getPassword(), findMember.get().getPassword())) {
             // 비밀번호가 일치하면 성공
-            String jwtToken = jwtTokenUtil.generateToken(findMember.get());
+            String jwtToken = jwtTokenUtil.generateToken(bankMemberDto.getId());
             log.info("로그인 성공: ID={}", bankMemberDto.getId());
             return Optional.of(jwtToken);
         }
@@ -64,5 +64,18 @@ public class LoginService {
 
     public boolean isTokenBlackListed(String token) {
         return tokenBlacklist.contains(token);
+    }
+
+    public String generateRefreshToken(Long id) {
+        return jwtTokenUtil.generateToken(id);
+    }
+
+    public Optional<String> refreshToken(String refreshToken) {
+        if (jwtTokenUtil.validateToken(refreshToken)) {
+            Long id = jwtTokenUtil.getUserIdFromRefreshToken(refreshToken);
+            return Optional.of(generateRefreshToken(id));
+        }
+
+        return Optional.empty();
     }
 }

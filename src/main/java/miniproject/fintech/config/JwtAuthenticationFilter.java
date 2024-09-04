@@ -1,9 +1,12 @@
 package miniproject.fintech.config;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,10 +16,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenUtil jwtTokenUtil;
-    private final UserDetailsService userDetailsService; // 생성자 주입으로 변경
+    private final UserDetailsService userDetailsService;
 
     public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil, UserDetailsService userDetailsService) {
         this.jwtTokenUtil = jwtTokenUtil;
@@ -26,17 +30,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String jwtToken = extractJwtFromRequest(request);
+        String requestURI = request.getRequestURI();
 
-        if (jwtToken != null && jwtTokenUtil.validateToken(jwtToken)) {
-            String username = jwtTokenUtil.getUsernameFromToken(jwtToken);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        // /api/refresh-token 경로에 대해 JWT 검증을 건너뛴다
+        if ("/api/refresh-token".equals(requestURI)) {
+            filterChain.doFilter(request, response); // 다음 필터로 진행
+            return;
+        }
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
+        try {
+            if (jwtToken != null && jwtTokenUtil.validateToken(jwtToken)) {
+                String username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (ExpiredJwtException ex) {
+            log.warn("JWT 토큰이 만료되었습니다. 만료된 토큰을 통해 새 토큰을 발급받을 수 있습니다.");
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.getWriter().write("JWT 토큰이 만료되었습니다. 새 토큰을 발급받으세요.");
+            return;
         }
 
         filterChain.doFilter(request, response);
@@ -51,3 +69,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
+
+

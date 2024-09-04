@@ -1,5 +1,5 @@
 package miniproject.fintech.config;
-import miniproject.fintech.service.CustomUserDetailsService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -47,21 +48,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
+                .csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login", "/register/create").permitAll()
+                        .requestMatchers("/api/refresh-token").permitAll() // 리프레시 토큰 엔드포인트 인증 없이 접근 가능
+                        .requestMatchers("/api/login", "/error", "register/create").permitAll() // 로그인과 회원가입 엔드포인트도 인증 없이 접근 가능
                         .requestMatchers("/transfer/process", "/transaction/**", "/deposit/**", "/member/**", "/account/**")
-                        .hasAnyRole("ADMIN", "USER")
+                        .permitAll()//.hasRole("USER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .csrf().disable();
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션을 상태 없이 관리
 
-        http
-                .formLogin().loginPage("/api/login").permitAll();
-
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
 
         return http.build();
     }

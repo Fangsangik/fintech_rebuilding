@@ -47,11 +47,30 @@ public class LoginController {
             // JWT 토큰을 JSON 형식으로 반환
             Map<String, String> response = new HashMap<>();
             response.put("token", jwtToken.get());
+            response.put("refreshToken", loginService.generateRefreshToken(loginRequest.getId()));
             return ResponseEntity.ok(response);
         } else {
             log.warn("로그인 실패: 사용자 ID {}의 인증에 실패했습니다.", loginRequest.getId());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("로그인 실패: 사용자 ID 인증에 실패했습니다.");
+        }
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestHeader("Authorization") String refreshToken) {
+        log.info("리프레시 토큰을 사용하여 액세스 토큰 재발급 요청");
+
+        Optional<String> newAccessToken = loginService.refreshToken(refreshToken.replace("Bearer ", ""));
+
+        if (newAccessToken.isPresent()) {
+            log.info("새로운 액세스 토큰 발급 성공");
+            Map<String, String> response = new HashMap<>();
+            response.put("accessToken", newAccessToken.get());
+            return ResponseEntity.ok(response);
+        } else {
+            log.warn("리프레시 토큰 만료 또는 유효하지 않음");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("리프레시 토큰이 만료되었거나 유효하지 않습니다. 다시 로그인하세요.");
         }
     }
 }
