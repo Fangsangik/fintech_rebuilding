@@ -1,8 +1,13 @@
 package miniproject.fintech.dto;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.type.AccountStatus;
 
 import java.time.LocalDateTime;
@@ -15,28 +20,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AccountDto {
-
-    @NotNull
-    @Min(1)
     private Long id;
-
-    @NotNull(message = "null이면 안됩니다.")
     private String accountNumber;
-
-    @NotNull(message = "null이면 안됩니다.")
     private String name;
-
-    @NotNull(message = "null이면 안됩니다.")
     private long amount;
-
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
-
-    @NotNull(message = "null이면 안됩니다.")
-    private AccountStatus accountStatus;
-
-    private List<DepositDto> deposits = new ArrayList<>();
-    private List<TransferDto> sentTransfers = new ArrayList<>();
-    private List<TransferDto> receivedTransfers = new ArrayList<>();
-    private List<TransactionDto> transactions = new ArrayList<>();
+    private BankMember bankMember;
+    private AccountStatus accountStatus;;
 }
