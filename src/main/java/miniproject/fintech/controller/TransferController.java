@@ -2,6 +2,7 @@ package miniproject.fintech.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import miniproject.fintech.domain.Transfer;
 import miniproject.fintech.dto.TransferDto;
 import miniproject.fintech.service.TransferServiceImpl;
 import org.springframework.cache.annotation.CacheEvict;
@@ -23,16 +24,16 @@ public class TransferController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/process")
     @CacheEvict(value = "transfersCache", allEntries = true)
-    public ResponseEntity<TransferDto> processTransfer(@RequestBody TransferDto transferDto) {
-        TransferDto transfer = transferService.processTransfer(transferDto);
+    public ResponseEntity<Transfer> processTransfer(@RequestBody TransferDto transferDto) {
+        Transfer transfer = transferService.processTransfer(transferDto);
         return ResponseEntity.ok().body(transfer);
     }
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}")
     @Cacheable(value = "transfersCache", key = "#id")
-    public ResponseEntity<TransferDto> getTransferById(@PathVariable Long id) {
-        TransferDto transfer = transferService.getTransferById(id);
+    public ResponseEntity<Transfer> getTransferById(@PathVariable Long id) {
+        Transfer transfer = transferService.getTransferById(id);
         return ResponseEntity.ok().body(transfer);
     }
 

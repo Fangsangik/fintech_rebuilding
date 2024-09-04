@@ -30,7 +30,7 @@ public class DepositServiceImpl {
     private final DtoConverter dtoConverter;
 
     @Transactional
-    public DepositDto processDeposit(DepositDto depositDto) {
+    public Deposit processDeposit(DepositDto depositDto) {
         log.info("입금 처리 시작: 계좌 ID = {}, 입금 금액 = {}", depositDto.getAccountId(), depositDto.getDepositAmount());
 
         // 입금될 계좌 확인
@@ -60,22 +60,22 @@ public class DepositServiceImpl {
                 depositDto.getAccountId(), deposit.getDepositAmount(), previousAmount, account.getAmount());
 
         // 엔티티를 DTO로 변환하여 반환
-        return dtoConverter.convertToDepositDto(savedDeposit);
+        return savedDeposit;
     }
 
-    public List<DepositDto> findDepositsByDateRange(LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
+    public List<Deposit> findDepositsByDateRange(LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         log.info("날짜 범위에 따른 입금 조회 시작: 시작일 = {}, 종료일 = {}, 페이지 = {}, 크기 = {}",
                 startDate, endDate, page, size);
 
         List<Deposit> deposits = depositRepository.findByDepositAtBetween(startDate, endDate, pageable);
-        return dtoConverter.convertToDepositDtoList(deposits);
+        return deposits;
     }
 
-    public List<DepositDto> findDepositsByAccountId(Long accountId) {
+    public List<Deposit> findDepositsByAccountId(Long accountId) {
         log.info("계좌 ID에 따른 입금 조회 시작: 계좌 ID = {}", accountId);
 
         List<Deposit> deposits = depositRepository.findByAccountId(accountId);
-        return dtoConverter.convertToDepositDtoList(deposits);
+        return deposits;
     }
 }

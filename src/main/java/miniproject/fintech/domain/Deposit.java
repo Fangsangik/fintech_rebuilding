@@ -22,7 +22,7 @@ public class Deposit {
     private long depositAmount;
     private LocalDateTime depositAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "account_id")
     private Account account;
 

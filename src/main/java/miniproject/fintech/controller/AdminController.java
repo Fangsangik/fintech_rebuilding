@@ -1,12 +1,12 @@
 package miniproject.fintech.controller;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Admin;
+import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.domain.Transaction;
 import miniproject.fintech.dto.AdminDto;
 import miniproject.fintech.dto.BankMemberDto;
-import miniproject.fintech.dto.TransactionDto;
 import miniproject.fintech.service.AdminService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -27,50 +27,50 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/allUsers")
     @Cacheable(value = "adminCache", key = "'allUsers'")
-    public ResponseEntity<List<BankMemberDto>> getAllUsers(
+    public ResponseEntity<List<BankMember>> getAllUsers(
             @RequestParam(defaultValue = "0") int pageNum,
             @RequestParam(defaultValue = "5") int pageSize) {
-        List<BankMemberDto> allBankMembers = adminService.getAllBankMembers(pageNum, pageSize);
+        List<BankMember> allBankMembers = adminService.getAllBankMembers(pageNum, pageSize);
         return ResponseEntity.ok(allBankMembers);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/toggle/{id}")
     @CacheEvict(value = "adminCache", key = "'allUsers'") // 캐시 무효화
-    public ResponseEntity<BankMemberDto> toggleBankMember(
+    public ResponseEntity<BankMember> toggleBankMember(
             @PathVariable Long id,
             @RequestParam boolean isActive) {
-        BankMemberDto bankMemberDto = adminService.toggleUserActivation(id, isActive);
+        BankMember bankMemberDto = adminService.toggleUserActivation(id, isActive);
         return ResponseEntity.ok(bankMemberDto);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/update/{id}")
     @CacheEvict(value = "adminCache", key = "'allUsers'")
-    public ResponseEntity<BankMemberDto> update(
+    public ResponseEntity<BankMember> update(
             @PathVariable Long id,
             @RequestBody BankMemberDto bankMemberDto) {
-        BankMemberDto updated = adminService.updateUserDetails(id, bankMemberDto);
+        BankMember updated = adminService.updateUserDetails(id, bankMemberDto);
         return ResponseEntity.ok(updated);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/getTransaction")
     @Cacheable(value = "adminCache", key = "'transactions'")
-    public ResponseEntity<List<TransactionDto>> getTransaction(
+    public ResponseEntity<List<Transaction>> getTransaction(
             @RequestParam(defaultValue = "0") int pageNum,
             @RequestParam(defaultValue = "5") int pageSize) {
-        List<TransactionDto> allTransactions = adminService.getAllTransactions(pageNum, pageSize);
+        List<Transaction> allTransactions = adminService.getAllTransactions(pageNum, pageSize);
         return ResponseEntity.ok(allTransactions);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/updateAdmin/{id}")
     @CacheEvict(value = "adminCache", key = "'adminDetails'") // 특정 캐시 키 무효화
-    public ResponseEntity<AdminDto> updateAdmin(
+    public ResponseEntity<Admin> updateAdmin(
             @PathVariable Long id,
             @RequestBody AdminDto adminDto) {
-        AdminDto updatedAdmin = adminService.updateAdmin(id, adminDto);
+        Admin updatedAdmin = adminService.updateAdmin(id, adminDto);
         return ResponseEntity.ok(updatedAdmin);
     }
 

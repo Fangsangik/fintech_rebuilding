@@ -1,6 +1,8 @@
 package miniproject.fintech.dto;
 
 import miniproject.fintech.domain.*;
+import miniproject.fintech.error.CustomError;
+import miniproject.fintech.type.ErrorType;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -33,7 +35,6 @@ public class DtoConverter {
         return AccountDto.builder()
                 .id(account.getId())
                 .name(account.getName())
-                .deposits(new ArrayList<>())
                 .accountNumber(account.getAccountNumber())
                 .amount(account.getAmount())
                 .createdAt(account.getCreatedAt())
@@ -48,10 +49,11 @@ public class DtoConverter {
         return BankMemberDto.builder()
                 .id(bankMember.getId())
                 .name(bankMember.getName())
-                .accountNumber(bankMember.getAccountNumber())
                 .amount(bankMember.getAmount())
-                .curAmount(bankMember.getAmount())
+                .email(bankMember.getEmail())
+                .curAmount(bankMember.getCurAmount())
                 .createdAt(bankMember.getCreatedAt())
+                .isActive(bankMember.isActive())
                 .roles(bankMember.getRoles())
                 .deletedAt(bankMember.getDeletedAt())
                 .build();
@@ -98,14 +100,19 @@ public class DtoConverter {
     }
 
     public TransferDto convertToTransferDto(Transfer transfer) {
-        if (transfer == null) return null;
+        if (transfer == null) {
+            throw new CustomError(ErrorType.TRANSFER_NOT_FOUND);
+        }
+
+        Long sourceAccountId = transfer.getSourceAccount() != null ? transfer.getSourceAccount().getId() : null;
+        Long destinationAccountId = transfer.getDestinationAccount() != null ? transfer.getDestinationAccount().getId() : null;
 
         return TransferDto.builder()
                 .id(transfer.getId())
                 .transferAmount(transfer.getTransferAmount())
                 .transferAt(transfer.getTransferAt())
-                .sourceAccountId(transfer.getSourceAccountId())
-                .destinationAccountId(transfer.getDestinationAccountId())
+                .sourceAccountId(sourceAccountId) // ID만 사용
+                .destinationAccountId(destinationAccountId) // ID만 사용
                 .transferStatus(transfer.getTransferStatus())
                 .message(transfer.getMessage())
                 .build();

@@ -3,7 +3,7 @@ package miniproject.fintech.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import miniproject.fintech.domain.BankMember;
+import miniproject.fintech.domain.Account;
 import miniproject.fintech.dto.AccountDto;
 import miniproject.fintech.dto.BankMemberDto;
 
@@ -19,8 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 import static miniproject.fintech.type.ErrorType.*;
 
 @Slf4j
@@ -31,18 +29,6 @@ public class AccountController {
 
     private final AccountServiceImpl accountService;
     private final MemoryMemberService memberService;
-
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping("/all")
-    @Cacheable(value = "accountsCache", key = "'allAccounts'")
-    public ResponseEntity<List<AccountDto>> getAllAccounts() {
-        log.info("모든 계좌 조회 요청 수신");
-
-        List<AccountDto> allAccounts = accountService.findAll();
-        log.info("모든 계좌 조회 성공, 계좌 수: {}", allAccounts.size());
-
-        return ResponseEntity.ok(allAccounts);
-    }
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}/balance")
@@ -92,8 +78,7 @@ public class AccountController {
         }
 
         // BankMember 존재 확인 및 가져오기
-        memberService.findById(bankMemberDto.getId())
-                .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
+        memberService.findById(bankMemberDto.getId());
 
         // 계좌 생성
         AccountDto createdAccountDto = accountService.createAccountForMember(accountDto, bankMemberDto.getId());
@@ -103,9 +88,9 @@ public class AccountController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/update/{id}")
     @CacheEvict(value = "accountsCache", key = "#id") // 계좌 업데이트 시 해당 계좌 캐시 무효화
-    public ResponseEntity<AccountDto> updateAccount(@PathVariable Long id, @Valid @RequestBody AccountDto accountDto) {
+    public ResponseEntity<Account> updateAccount(@PathVariable Long id, @Valid @RequestBody AccountDto accountDto) {
         validation(id);  // 계좌 유효성 검증
-        AccountDto updatedAccountDto = accountService.updateAccount(id, accountDto);
+        Account updatedAccountDto = accountService.updateAccount(id, accountDto);
         return ResponseEntity.ok(updatedAccountDto);
     }
 

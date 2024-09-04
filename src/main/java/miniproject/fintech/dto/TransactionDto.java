@@ -3,24 +3,26 @@ package miniproject.fintech.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import miniproject.fintech.type.Grade;
 import miniproject.fintech.type.TransactionStatus;
 import miniproject.fintech.type.TransactionType;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Builder(toBuilder = true)
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionDto {
+    @NotNull(message = "Transaction ID cannot be null")
+    private Long id;
 
     @NotNull(message = "Bank member ID cannot be null")
-    private Long id;
+    private Long bankMemberId;
+
 
     @Min(value = 1, message = "Transaction amount must be greater than 0")
     private long transactionAmount;

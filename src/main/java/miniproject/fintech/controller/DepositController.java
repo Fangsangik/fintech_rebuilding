@@ -24,21 +24,21 @@ public class DepositController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/process")
     @CacheEvict(value = "depositCache", allEntries = true) // 입금 처리 시 캐시 무효화
-    public ResponseEntity<DepositDto> processDeposit
+    public ResponseEntity<Deposit> processDeposit
             (@RequestBody DepositDto depositDto) {
-        DepositDto deposit = depositService.processDeposit(depositDto);
+        Deposit deposit = depositService.processDeposit(depositDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(deposit);
     }
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/by-range-date")
     @Cacheable(value = "depositCache", key = "{#startDate, #endDate, #page, #size}")
-    public ResponseEntity<List<DepositDto>> findDepositsByDateRange
+    public ResponseEntity<List<Deposit>> findDepositsByDateRange
             (@RequestParam LocalDateTime startDate,
              @RequestParam LocalDateTime endDate,
              @RequestParam int page,
              @RequestBody int size) {
-        List<DepositDto> deposits = depositService
+        List<Deposit> deposits = depositService
                 .findDepositsByDateRange(startDate, endDate, page, size);
 
         return ResponseEntity.ok(deposits);
@@ -47,9 +47,9 @@ public class DepositController {
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/by-account/{accountId}")
     @CacheEvict(value = "depositCache", allEntries = true) // 입금 후 모든 캐시 무효화
-    public ResponseEntity<List<DepositDto>> findDepositsByAccountId
+    public ResponseEntity<List<Deposit>> findDepositsByAccountId
             (@PathVariable Long accountId) {
-        List<DepositDto> deposits = depositService.findDepositsByAccountId(accountId);
+        List<Deposit> deposits = depositService.findDepositsByAccountId(accountId);
         return ResponseEntity.ok(deposits);
     }
 }

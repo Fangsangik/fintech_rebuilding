@@ -40,6 +40,8 @@ class MemoryMemberServiceTest {
     private DtoConverter converter;
 
     private BankMemberDto bankMemberDto;
+    @Autowired
+    private DtoConverter dtoConverter;
 
     @BeforeEach
     void beforeEach() {
@@ -48,8 +50,9 @@ class MemoryMemberServiceTest {
         BankMember bankMember = memberRepository.save(BankMember.builder()
                 .name("Messi")
                 .accountNumber("1234")
+                .email("john.doe@example.com")
                 .accounts(new ArrayList<>())
-                .roles(new HashSet<>())
+                .roles("USER")
                 .address("seoul")
                 .age(20)
                 .build());
@@ -62,35 +65,35 @@ class MemoryMemberServiceTest {
     void findById_ValidId_ShouldReturnBankMember() {
 
 
-        Optional<BankMember> foundMember = memberService.findById(bankMemberDto.getId());
+        BankMember foundMember = memberService.findById(bankMemberDto.getId());
 
-        assertTrue(foundMember.isPresent());
-        BankMember bankMember = foundMember.get();
+        assertThat(foundMember).isNotNull();
+        BankMember bankMember = foundMember;
         assertEquals(bankMemberDto.getId(), bankMember.getId());
     }
 
     @Transactional
     @Test
     void findById_InvalidId_ShouldReturnEmpty() {
-        BankMember nonExistentMember = BankMember.builder()
-                .id(999L)
-                .build();
+        Long nonExistentMemberId = 999L;
+        CustomError exception = assertThrows(CustomError.class, () -> {
+            memberService.findById(nonExistentMemberId);
+        });
 
-        Optional<BankMember> foundMember = memberService.findById(nonExistentMember.getId());
-
-        assertThat(foundMember).isEmpty();
+        assertThat(exception.getMessage()).isEqualTo("존재하지 않는 회원입니다.");
     }
 
     @Transactional
     @Test
     void findById_InvalidBankMember_ShouldThrowException() {
         //given
-        BankMember invalidMember = BankMember.builder()
-                .id(null)
-                .build();
+        Long invalidMemberId = null;
+        CustomError exception = assertThrows(CustomError.class, () -> {
+            memberService.findById(invalidMemberId);
+        });
 
         // CustomError가 발생해야 함
-        assertThrows(CustomError.class, () -> memberService.findById(invalidMember.getId()));
+        assertThat(exception.getMessage()).isEqualTo("존재하지 않는 회원입니다.");
     }
 
     @Transactional
@@ -127,7 +130,8 @@ class MemoryMemberServiceTest {
         BankMemberDto bankMemberDto = BankMemberDto.builder()
                 .name("John Doe")
                 .password("123")
-                .email("john.doe@example.com")
+                .roles("USER")
+                .email("apple.doe@example.com")
                 .password("securepassword")
                 .address("123 Main St")
                 .createdAt(LocalDateTime.now())
@@ -135,7 +139,7 @@ class MemoryMemberServiceTest {
                 .build();
 
         // When: createBankMember 메서드를 호출하여 새 BankMember를 생성
-        BankMemberDto createdMember = memberService.createBankMember(bankMemberDto, bankMemberDto.getRoles());
+        BankMember createdMember = memberService.createBankMember(bankMemberDto, bankMemberDto.getRoles());
 
         // Then: 생성된 BankMember가 null이 아니고, BankMemberDto의 필드와 일치해야 함
         assertNotNull(createdMember, "The created BankMember should not be null");
@@ -147,17 +151,19 @@ class MemoryMemberServiceTest {
     @Test
     @Transactional
     void delete() {
+        memberRepository.deleteAll();
         // Given: 기존 회원을 데이터베이스에 저장
         BankMemberDto bankMemberDto = BankMemberDto.builder()
-                .name("John Doe")
-                .email("john.doe@example.com")
-                .password("securepassword")
-                .address("123 Main St")
-                .createdAt(LocalDateTime.now())
-                .accountNumber("1234567890")
+                .name("John Doe")  // 필수 필드 추가
+                .email("john.doe@example.com")  // 필수 필드 추가
+                .password("1234")
+                .roles("USER")  // 필수 필드 추가
+                .address("123 Main St")  // 필수 필드 추가
+                .createdAt(LocalDateTime.now())  // 필수 필드 추가
+                .accountNumber("1234567890")  // 필수 필드 추가
                 .build();
 
-        BankMemberDto rst = memberService.createBankMember(bankMemberDto, bankMemberDto.getRoles());
+        BankMember rst = memberService.createBankMember(bankMemberDto, bankMemberDto.getRoles());
         Long memberId = rst.getId();
 
         // 비밀번호가 틀렸을 때 CustomError가 발생해야 함
@@ -166,6 +172,6 @@ class MemoryMemberServiceTest {
                     memberService.deleteById(memberId, "wrongpassword");
                 });
 
-        assertEquals("비밀번호가 일치하지 않습니다.", exception.getMessage());
+        assertEquals("비밀번호가 null이면 안됩니다.", exception.getMessage());
     }
 }

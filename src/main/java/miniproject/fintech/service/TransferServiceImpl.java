@@ -11,10 +11,12 @@ import miniproject.fintech.dto.TransferDto;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.AccountRepository;
 import miniproject.fintech.repository.TransferRepository;
+import miniproject.fintech.type.ErrorType;
 import miniproject.fintech.type.TransferStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,12 +29,13 @@ public class TransferServiceImpl {
 
     private final TransferRepository transferRepository;
     private final AccountRepository accountRepository;
+    private final AccountServiceImpl accountService;
     private final NotificationServiceImpl notificationService;
     private final DtoConverter dtoConverter;
     private final EntityConverter entityConverter;
 
     @Transactional
-    public TransferDto processTransfer(TransferDto transferDto) {
+    public Transfer processTransfer(TransferDto transferDto) {
         log.info("송금 처리 시작: 송금액 = {}, 송금 출발 계좌 ID = {}, 송금 도착 계좌 ID = {}",
                 transferDto.getTransferAmount(), transferDto.getSourceAccountId(), transferDto.getDestinationAccountId());
 
@@ -40,24 +43,33 @@ public class TransferServiceImpl {
         AccountDto sourceAccountDto = getAccountDtoById(transferDto.getSourceAccountId(), "소스");
         AccountDto destinationAccountDto = getAccountDtoById(transferDto.getDestinationAccountId(), "목적");
 
+        if (sourceAccountDto.getId().equals(destinationAccountDto.getId())) {
+            throw new CustomError(ErrorType.SOURCE_ACCOUNT_DESTINATION_ACCOUNT_SHOULD_NOT_SAME);
+        }
+
         // 송금 처리 로직
         TransferDto savedTransferDto = executeTransfer(transferDto, sourceAccountDto, destinationAccountDto);
 
-        // 알림 전송
-        notificationService.sendNotification(savedTransferDto);
+        // 알림 전송 (비동기 처리 고려)
+        try {
+            notificationService.sendNotification(savedTransferDto);
+        } catch (Exception e) {
+            log.error("알림 전송 실패: {}", e.getMessage());
+            // 알림 전송 실패에 대한 추가 처리 필요
+        }
 
-        return savedTransferDto;
+        return entityConverter.convertToTransfer(savedTransferDto);
     }
 
     @Transactional(readOnly = true)
-    public TransferDto getTransferById(Long transferId) {
+    public Transfer getTransferById(Long transferId) {
         log.info("송금 기록 조회 시작: 송금 ID = {}", transferId);
 
         Transfer transfer = transferRepository.findById(transferId)
                 .orElseThrow(() -> new CustomError(TRANSFER_NOT_FOUND));
 
         log.info("송금 기록 조회 완료: 송금 ID = {}, 송금 정보 = {}", transferId, transfer);
-        return dtoConverter.convertToTransferDto(transfer);
+        return transfer;
     }
 
     @Transactional(readOnly = true)
@@ -85,44 +97,35 @@ public class TransferServiceImpl {
         log.info("송금 기록 삭제 완료: 송금 ID = {}", transferId);
     }
 
-    private AccountDto getAccountDtoById(Long accountId, String accountType) {
-        return accountRepository.findById(accountId)
-                .map(dtoConverter::convertToAccountDto)
-                .orElseThrow(() -> {
-                    log.error("{} 계좌를 찾을 수 없습니다: 계좌 ID = {}", accountType, accountId);
-                    return new CustomError(accountType.equals("소스") ? SOURCE_ID_NOT_FOUND : DESTINATION_ID_NOT_FOUND);
-                });
+    private AccountDto getAccountDtoById(Long accountId, String type) {
+        return accountService.findById(accountId)
+                .orElseThrow(() -> new CustomError(ACCOUNT_NOT_FOUND));
     }
 
     private TransferDto executeTransfer(TransferDto transferDto, AccountDto sourceAccountDto, AccountDto destinationAccountDto) {
-        Transfer transfer = new Transfer();
-        transfer.setTransferAmount(transferDto.getTransferAmount());
-        transfer.setTransferAt(transferDto.getTransferAt());
-        transfer.setTransferStatus(TransferStatus.FAILED); // 초기 상태는 FAILED로 설정
-        transfer.setSourceAccountId(transferDto.getSourceAccountId());
-        transfer.setDestinationAccountId(transferDto.getDestinationAccountId());
-        transfer.setMessage("송금이 실패되었습니다.");
-
-        if (sourceAccountDto.getAmount() >= transferDto.getTransferAmount()) {
-            sourceAccountDto.setAmount(sourceAccountDto.getAmount() - transferDto.getTransferAmount());
-            destinationAccountDto.setAmount(destinationAccountDto.getAmount() + transferDto.getTransferAmount());
-
-            accountRepository.save(entityConverter.convertToAccount(sourceAccountDto));
-            accountRepository.save(entityConverter.convertToAccount(destinationAccountDto));
-
-            transfer.setTransferStatus(TransferStatus.COMPLETED);
-            transfer.setMessage("송금이 완료되었습니다.");
-
-            log.info("송금 처리 완료: 송금액 = {}, 출발 계좌 ID = {}, 도착 계좌 ID = {}, 새로운 출발 계좌 잔액 = {}, 새로운 도착 계좌 잔액 = {}",
-                    transferDto.getTransferAmount(), transferDto.getSourceAccountId(), transferDto.getDestinationAccountId(),
-                    sourceAccountDto.getAmount(), destinationAccountDto.getAmount());
-        } else {
-            log.warn("송금 실패: 잔액 부족, 송금액 = {}, 출발 계좌 ID = {}, 현재 잔액 = {}",
-                    transferDto.getTransferAmount(), transferDto.getSourceAccountId(), sourceAccountDto.getAmount());
+        if (sourceAccountDto.getAmount() < transferDto.getTransferAmount()) {
+            throw new CustomError(NOT_ENOUGH_MONEY);
         }
 
-        Transfer savedTransfer = transferRepository.save(transfer);
-        return dtoConverter.convertToTransferDto(savedTransfer);
+        // 출발 계좌에서 금액 차감
+        sourceAccountDto.setAmount(sourceAccountDto.getAmount() - transferDto.getTransferAmount());
+        accountService.updateAccount(sourceAccountDto.getId(), sourceAccountDto);
+
+        // 도착 계좌에 금액 추가
+        destinationAccountDto.setAmount(destinationAccountDto.getAmount() + transferDto.getTransferAmount());
+        accountService.updateAccount(destinationAccountDto.getId(), destinationAccountDto);
+
+        // TransferDto 생성 및 반환
+        TransferDto savedTransferDto = TransferDto.builder()
+                .sourceAccountId(sourceAccountDto.getId())
+                .destinationAccountId(destinationAccountDto.getId())
+                .transferAmount(transferDto.getTransferAmount())
+                .transferStatus(TransferStatus.COMPLETED)
+                .transferAt(LocalDateTime.now())
+                .message("송금이 완료되었습니다.")
+                .build();
+
+        return savedTransferDto;
     }
 }
 

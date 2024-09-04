@@ -21,8 +21,13 @@ public class Transfer {
     private long transferAmount;
     private LocalDateTime transferAt;
 
-    private Long sourceAccountId;
-    private Long destinationAccountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_account_id")
+    private Account sourceAccount;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "destination_account_id")
+    private Account destinationAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Account account;

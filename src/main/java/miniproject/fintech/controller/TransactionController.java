@@ -3,6 +3,7 @@ package miniproject.fintech.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import miniproject.fintech.domain.Transaction;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.CreateTransactionRequest;
 import miniproject.fintech.dto.TransactionDto;
@@ -34,11 +35,11 @@ public class TransactionController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/{id}")
     @Cacheable(value = "transactionsCache", key = "#id")
-    public ResponseEntity<TransactionDto> getTransactionById(
+    public ResponseEntity<Transaction> getTransactionById(
             @PathVariable Long id,
             @RequestParam BankMemberDto bankMemberDto) {
 
-        TransactionDto transactionById = transactionService.getTransactionById(id, bankMemberDto)
+        Transaction transactionById = transactionService.getTransactionById(id, bankMemberDto)
                 .orElseThrow(() -> new CustomError(ErrorType.TRANSACTION_NOT_FOUND));
 
         return ResponseEntity.status(HttpStatus.OK).body(transactionById);
@@ -47,22 +48,22 @@ public class TransactionController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/create")
     @CacheEvict(value = "transactionsCache", allEntries = true)
-    public ResponseEntity<TransactionDto> createTransaction(
+    public ResponseEntity<Transaction> createTransaction(
             @Valid @RequestBody TransactionDto transactionDto) {
 
-        TransactionDto transaction = transactionService.createTransaction(transactionDto);
+        Transaction transaction = transactionService.createTransaction(transactionDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
     }
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/update/{id}")
     @CacheEvict(value = "transactionsCache", key = "#id")
-    public ResponseEntity<TransactionDto> updateTransaction(
+    public ResponseEntity<Transaction> updateTransaction(
             @PathVariable Long id,
             @Valid @RequestBody CreateTransactionRequest request) {
 
         TransactionDto transactionDto = request.getTransactionDto();
-        TransactionDto updatedTransaction = transactionService.updateTransaction(id, transactionDto, request.getBankMemberDto());
+        Transaction updatedTransaction = transactionService.updateTransaction(id, transactionDto, request.getBankMemberDto());
         return ResponseEntity.ok(updatedTransaction);
     }
 
@@ -81,10 +82,10 @@ public class TransactionController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping("/member/{memberId}")
     @Cacheable(value = "transactionsCache", key = "'member_' + #memberId")
-    public ResponseEntity<List<TransactionDto>> getAllTransactionsByMemberId(@PathVariable Long memberId) {
+    public ResponseEntity<List<Transaction>> getAllTransactionsByMemberId(@PathVariable Long memberId) {
         log.info("특정 회원의 모든 거래 조회 요청 수신: 회원 ID={}", memberId);
 
-        List<TransactionDto> memberTransactions = transactionService.getAllTransactionsByMemberId(memberId);
+        List<Transaction> memberTransactions = transactionService.getAllTransactionsByMemberId(memberId);
         log.info("특정 회원의 모든 거래 조회 성공, 거래 수: {}", memberTransactions.size());
 
         return ResponseEntity.ok(memberTransactions);

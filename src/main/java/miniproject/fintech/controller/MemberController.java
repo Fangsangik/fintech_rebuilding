@@ -3,9 +3,9 @@ package miniproject.fintech.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import miniproject.fintech.dto.AccountDto;
+import miniproject.fintech.domain.Account;
+import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.BankMemberDto;
-import miniproject.fintech.error.CustomError;
 import miniproject.fintech.service.MemoryMemberService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -14,8 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import static miniproject.fintech.type.ErrorType.*;
 
 
 @Slf4j
@@ -29,10 +27,10 @@ public class MemberController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     @Cacheable(value = "MemberCache") // 모든 회원 목록을 캐시
-    public ResponseEntity<List<BankMemberDto>> getAllMembers() {
+    public ResponseEntity<List<BankMember>> getAllMembers() {
         log.info("모든 회원 조회 요청");
 
-        List<BankMemberDto> all = memberService.findAll();
+        List<BankMember> all = memberService.findAll();
         return ResponseEntity.ok(all);
     }
 
@@ -63,11 +61,10 @@ public class MemberController {
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}")
     @Cacheable(value = "MemberCache", key = "#id") // ID로 회원 조회 시 캐싱
-    public ResponseEntity<BankMemberDto> getMemberById(@PathVariable Long id) {
+    public ResponseEntity<BankMember> getMemberById(@PathVariable Long id) {
         log.info("회원 정보 요청 수신: ID={}", id);
 
-        BankMemberDto findMemberDto = memberService.findById(id)
-                .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
+        BankMember findMemberDto = memberService.findById(id);
         log.info("회원 정보 조회 성공: ID={}", id);
 
         return ResponseEntity.ok(findMemberDto);
@@ -75,11 +72,11 @@ public class MemberController {
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}/accounts")
-    @Cacheable(value = "AccountsCache", key = "#id") // 회원 계좌 정보 조회 시 캐싱
-    public ResponseEntity<List<AccountDto>> getAccountsByMemberId(@PathVariable Long id) {
+    @Cacheable(value = "accountsCache", key = "#id") // 회원 계좌 정보 조회 시 캐싱
+    public ResponseEntity<List<Account>> getAccountsByMemberId(@PathVariable Long id) {
         log.info("회원 계좌 조회 요청 수신: ID={}", id);
 
-        List<AccountDto> accounts = memberService.findAccountByMemberId(id);
+        List<Account> accounts = memberService.findAccountByMemberId(id);
         log.info("회원 계좌 조회 성공: ID={}, 계좌 수: {}", id, accounts.size());
 
         return ResponseEntity.ok(accounts);
@@ -89,12 +86,12 @@ public class MemberController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/update/{id}")
     @CacheEvict(value = "MemberCache", key = "#id") // 회원 정보 업데이트 시 캐시 무효화
-    public ResponseEntity<BankMemberDto> updateBankMember(
+    public ResponseEntity<BankMember> updateBankMember(
             @PathVariable Long id,
             @Valid @RequestBody BankMemberDto bankMemberDto) {
         log.info("회원 정보 업데이트 요청 수신: ID={}, 요청 데이터={}", id, bankMemberDto);
 
-        BankMemberDto updatedMemberDto = memberService.updateMember(id, bankMemberDto);
+        BankMember updatedMemberDto = memberService.updateMember(id, bankMemberDto);
         log.info("회원 정보 업데이트 성공: ID={}", id);
 
         return ResponseEntity.accepted().body(updatedMemberDto);

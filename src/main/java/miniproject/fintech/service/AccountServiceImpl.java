@@ -56,18 +56,14 @@ public class AccountServiceImpl {
         log.info("회원 ID {}로 계좌 생성 요청: {}", memberId, accountDto);
 
         // 회원 조회 및 검증
-        BankMemberDto bankMemberDto = memberService.findById(memberId)
-                .orElseThrow(() -> {
-                    log.error("회원 조회 실패: ID = {}", memberId);
-                    return new CustomError(MEMBER_NOT_FOUND);
-                });
+        BankMember bankMemberDto = memberService.findById(memberId);
 
         // 계좌 및 회원 검증
-        validationCheckMember(bankMemberDto, accountDto);
+        validationCheckMember(dtoConverter.convertToBankMemberDto(bankMemberDto), accountDto);
 
         // DTO를 엔티티로 변환하여 계좌 생성
         Account account = entityConverter.convertToAccount(accountDto);
-        account.setBankMember(entityConverter.convertToBankMember(bankMemberDto));
+        account.setBankMember(bankMemberDto);
 
         Account savedAccount = accountRepository.save(account);
         log.info("계좌 생성 성공: {}", savedAccount);
@@ -110,7 +106,7 @@ public class AccountServiceImpl {
 
     // 계좌 업데이트 후 DTO 반환
     @Transactional
-    public AccountDto updateAccount(Long accountId, AccountDto updatedAccountDto) {
+    public Account updateAccount(Long accountId, AccountDto updatedAccountDto) {
         log.info("계좌 업데이트 요청: ID = {}, 업데이트 내용: {}", accountId, updatedAccountDto);
         Account existingAccount = validationOfId(accountId);
 
@@ -118,10 +114,13 @@ public class AccountServiceImpl {
         existingAccount.setAccountNumber(updatedAccountDto.getAccountNumber());
         existingAccount.setAmount(updatedAccountDto.getAmount());
         existingAccount.setAccountStatus(updatedAccountDto.getAccountStatus());
+        existingAccount.setAccountStatus(updatedAccountDto.getAccountStatus());
+        existingAccount.setName(updatedAccountDto.getName());
+
 
         Account savedAccount = accountRepository.save(existingAccount);
         log.info("계좌 업데이트 성공: {}", savedAccount);
-        return dtoConverter.convertToAccountDto(savedAccount);
+        return savedAccount;
     }
 
     private Account validationOfId(Long accountId) {

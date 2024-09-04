@@ -5,10 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Admin;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.domain.Transaction;
-import miniproject.fintech.dto.AdminDto;
-import miniproject.fintech.dto.BankMemberDto;
-import miniproject.fintech.dto.DtoConverter;
-import miniproject.fintech.dto.TransactionDto;
+import miniproject.fintech.dto.*;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.AdminRepository;
 import miniproject.fintech.repository.MemberRepository;
@@ -37,9 +34,10 @@ public class AdminService {
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
     private final DtoConverter dtoConverter;
+    private final EntityConverter entityConverter;
 
     @Transactional(readOnly = true)
-    public List<BankMemberDto> getAllBankMembers(int pageNum, int pageSize) {
+    public List<BankMember> getAllBankMembers(int pageNum, int pageSize) {
         log.info("모든 사용자 조회 시작");
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<BankMember> bankMemberPage = memberRepository.findAll(pageable);
@@ -50,21 +48,21 @@ public class AdminService {
 
         log.info("모든 사용자 조회 완료: 총 사용자 수 = {}", bankMemberPage.getTotalElements());
 
-        return bankMemberDtos;
+        return entityConverter.convertToBankMemberList(bankMemberDtos);
     }
 
     @Transactional
-    public BankMemberDto toggleUserActivation(Long id, boolean isActive) {
+    public BankMember toggleUserActivation(Long id, boolean isActive) {
         BankMember bankMember = findBankMember(id);
 
         bankMember.setActive(isActive);
         BankMember savedBankMember = memberRepository.save(bankMember);
         log.info("사용자 활성화/비활성화 완료: 사용자 ID = {}, 활성 상태 = {}", id, isActive);
-        return converter.convertToBankMemberDto(savedBankMember);
+        return savedBankMember;
     }
 
     @Transactional
-    public BankMemberDto updateUserDetails(Long id, BankMemberDto bankMemberDto) {
+    public BankMember updateUserDetails(Long id, BankMemberDto bankMemberDto) {
         BankMember bankMember = findBankMember(id);
 
         if (bankMemberDto.getName() != null) bankMember.setName(bankMemberDto.getName());
@@ -73,26 +71,26 @@ public class AdminService {
 
         BankMember updatedBankMember = memberRepository.save(bankMember);
         log.info("사용자 정보 수정 완료: 사용자 ID = {}", updatedBankMember.getId());
-        return converter.convertToBankMemberDto(updatedBankMember);
+        return updatedBankMember;
     }
 
     @Transactional(readOnly = true)
-    public List<TransactionDto> getAllTransactions(int pageNum, int pageSize) {
+    public List<Transaction> getAllTransactions(int pageNum, int pageSize) {
         log.info("모든 거래 조회 시작");
+        // 페이징 정보를 설정
         Pageable pageable = PageRequest.of(pageNum, pageSize);
+        // 페이지별 거래 조회
         Page<Transaction> transactionPage = transactionRepository.findAll(pageable);
 
-        List<TransactionDto> transactionDtos = transactionPage
-                .stream().map(converter::convertToTransactionDto)
-                .collect(Collectors.toList());
-
+        // 로깅: 총 거래 수를 출력
         log.info("모든 거래 조회 완료: 총 거래 수 = {}", transactionPage.getTotalElements());
 
-        return transactionDtos;
+        // 엔티티 리스트 반환
+        return transactionPage.getContent();  // Page 객체에서 거래 리스트를 직접 반환
     }
 
     @Transactional
-    public AdminDto updateAdmin(Long id, AdminDto adminDto) {
+    public Admin updateAdmin(Long id, AdminDto adminDto) {
         log.info("관리자 정보 수정 요청: 관리자 ID - {}", id);
 
         Admin admin = adminRepository.findById(id)
@@ -116,7 +114,7 @@ public class AdminService {
         Admin savedAdmin = adminRepository.save(admin);
         log.info("관리자 정보 수정 완료: 관리자 ID - {}", savedAdmin.getId());
 
-        return dtoConverter.convertToAdminDto(savedAdmin);
+        return savedAdmin;
     }
 
     public void adminChangeUserPassword(Long adminId, Long userId, String newPassword) {

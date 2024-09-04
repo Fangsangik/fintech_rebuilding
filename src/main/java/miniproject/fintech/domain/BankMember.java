@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Getter
-@Setter //테스트 위함
+@Setter // 테스트 위함
 @Entity
-@Builder (toBuilder = true)
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class BankMember {
@@ -21,7 +21,6 @@ public class BankMember {
     private Long id;
 
     private String name;
-    private String accountNumber;
     private int amount;
     private String email;
     private String password;
@@ -39,10 +38,9 @@ public class BankMember {
 
     private boolean isActive;
 
-    @OneToMany(mappedBy = "bankMember",fetch = FetchType.LAZY ,cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Account> accounts = new ArrayList<>(); // 빈 리스트로 초기화
+    @OneToMany(mappedBy = "bankMember", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Account> accounts = new ArrayList<>(); // 계좌 리스트
 
-    @OneToMany(mappedBy = "bankMember", fetch = FetchType.LAZY ,cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Transaction> transactions = new ArrayList<>();
-
+    @OneToMany(mappedBy = "bankMember", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Transaction> transactions = new ArrayList<>(); // 거래 리스트
 }

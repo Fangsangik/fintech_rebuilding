@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.*;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.DtoConverter;
+import miniproject.fintech.dto.EntityConverter;
 import miniproject.fintech.dto.TransactionDto;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.MemberRepository;
@@ -29,29 +30,30 @@ public class TransactionServiceImpl {
     private final TransactionRepository transactionRepository;
     private final MemberRepository memberRepository;
     private final DtoConverter dtoConverter;
+    private final EntityConverter entityConverter;
 
     @Transactional(readOnly = true)
-    public Optional<TransactionDto> getTransactionById(Long transactionId, BankMemberDto bankMemberDto) {
+    public Optional<Transaction> getTransactionById(Long transactionId, BankMemberDto bankMemberDto) {
         log.info("거래 조회 시작: 거래 ID = {}, 사용자 ID = {}", transactionId, bankMemberDto.getId());
 
         Transaction transaction = validationOfId(transactionId, bankMemberDto);
         log.info("거래 조회 완료: 거래 ID = {}, 거래 정보 = {}", transactionId, transaction);
-        return Optional.of(dtoConverter.convertToTransactionDto(transaction));
+        return Optional.ofNullable(transaction);
     }
 
     @Transactional(readOnly = true)
-    public List<TransactionDto> getAllTransactionsByMemberId(Long memberId) {
+    public List<Transaction> getAllTransactionsByMemberId(Long memberId) {
         log.info("특정 회원의 모든 거래 조회 시작: 회원 ID = {}", memberId);
         List<Transaction> transactions = transactionRepository.findByBankMemberId(memberId);
         List<TransactionDto> transactionDtos = transactions.stream()
                 .map(dtoConverter::convertToTransactionDto)
                 .collect(Collectors.toList());
         log.info("특정 회원의 모든 거래 조회 완료: 거래 수 = {}", transactions.size());
-        return transactionDtos;
+        return entityConverter.convertToTransactionList(transactionDtos);
     }
 
     @Transactional
-    public TransactionDto createTransaction(TransactionDto transactionDto) {
+    public Transaction createTransaction(TransactionDto transactionDto) {
         log.info("거래 생성 시작: 거래 DTO = {}", transactionDto);
 
         BankMember bankMember = memberRepository.findById(transactionDto.getId())
@@ -61,11 +63,11 @@ public class TransactionServiceImpl {
         Transaction savedTransaction = transactionRepository.save(transaction);
 
         log.info("거래 생성 완료: 거래 ID = {}", savedTransaction.getId());
-        return dtoConverter.convertToTransactionDto(savedTransaction);
+        return savedTransaction;
     }
 
     @Transactional
-    public TransactionDto updateTransaction(Long transactionId, TransactionDto transactionDto, BankMemberDto bankMemberDto) {
+    public Transaction updateTransaction(Long transactionId, TransactionDto transactionDto, BankMemberDto bankMemberDto) {
         log.info("거래 업데이트 시작: 거래 ID = {}, 거래 DTO = {}", transactionId, transactionDto);
         Transaction existingTransaction = validationOfId(transactionId, bankMemberDto);
 
@@ -80,7 +82,7 @@ public class TransactionServiceImpl {
 
         Transaction savedTransaction = transactionRepository.save(updatedTransaction);
         log.info("거래 업데이트 완료: 거래 ID = {}", savedTransaction.getId());
-        return dtoConverter.convertToTransactionDto(savedTransaction);
+        return savedTransaction;
     }
 
     @Transactional

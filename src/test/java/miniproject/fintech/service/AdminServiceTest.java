@@ -47,7 +47,7 @@ class AdminServiceTest {
     void testGetAllBankMembers() {
         int pageNum = 0;
         int pageSize = 10;
-        List<BankMemberDto> rst = adminService.getAllBankMembers(pageNum, pageSize);
+        List<BankMember> rst = adminService.getAllBankMembers(pageNum, pageSize);
 
         assertNotNull(rst);
         assertFalse(rst.isEmpty());
@@ -76,7 +76,7 @@ class AdminServiceTest {
         bankMemberDto.setEmail("updated@example.com");
 
         // Act
-        BankMemberDto updatedMemberDto = adminService.updateUserDetails(memberId, bankMemberDto);
+        BankMember updatedMemberDto = adminService.updateUserDetails(memberId, bankMemberDto);
         BankMember updatedBankMember = memberRepository.findById(memberId).orElse(null);
 
         // Assert

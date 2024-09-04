@@ -50,7 +50,7 @@ class TransactionServiceImplTest {
     @BeforeEach
     void setUp() {
         memberRepository.deleteAll();
-
+        transactionRepository.deleteAll();
         BankMember bankMember = memberRepository.save(BankMember.builder()
                 .name("Messi")
                 .accountNumber("1234")
@@ -73,9 +73,29 @@ class TransactionServiceImplTest {
 
     @Transactional
     @Test
-    void getTransactionById() {
+    void createTransaction() {
+        Transaction transaction = transactionService.createTransaction(transactionDto);
+        assertNotNull(transaction);
+        assertEquals(transactionDto.getTransactionAmount(), transaction.getTransactionAmount(), "The transaction amounts should match");
+        assertEquals(transactionDto.getTransactionType(), transaction.getTransactionType(), "The transaction types should match");
+        assertEquals(transactionDto.getTransactionStatus(), transaction.getTransactionStatus(), "The transaction statuses should match");
+        assertEquals(bankMemberDto.getId(), transaction.getBankMember().getId(), "The bank member IDs should match");
 
-        Optional<TransactionDto> findTransaction = transactionService.getTransactionById(transactionDto.getId(), bankMemberDto);
+    }
+
+    @Transactional
+    @Test
+    void getTransactionById() {
+        transactionRepository.deleteAll();  // 트랜잭션 데이터 삭제
+
+        // 트랜잭션 생성 후 트랜잭션 ID를 올바르게 설정
+        Transaction createdTransaction = transactionService.createTransaction(transactionDto);
+        transactionDto.setId(createdTransaction.getId());
+
+        // 트랜잭션 ID로 검색 시도
+        Optional<Transaction> findTransaction = transactionService.getTransactionById(transactionDto.getId(), bankMemberDto);
+
+        // 검색된 트랜잭션이 존재하는지 확인
         assertTrue(findTransaction.isPresent());
         assertEquals(transactionDto.getId(), findTransaction.get().getId());
         assertEquals(transactionDto.getTransactionAmount(), findTransaction.get().getTransactionAmount());
@@ -99,19 +119,11 @@ class TransactionServiceImplTest {
     @Test
     @Transactional
     void updateTransaction() {
-        // Given: 기존 거래 데이터 설정
-        TransactionDto transactionDto = TransactionDto.builder()
-                .id(this.transactionDto.getId())
-                .transactedAt(LocalDateTime.now())
-                .transactionAmount(20000)
-                .transactionStatus(TransactionStatus.FAIL)
-                .curAmount(30000)
-                .referenceNumber("newRef")
-                .grade(Grade.VIP)
-                .build();
 
+        transactionDto.setBankMemberId(bankMemberDto.getId());
+        Transaction transaction = transactionService.createTransaction(transactionDto);
         // When: 거래 업데이트 수행
-        TransactionDto updatedTransaction = transactionService.updateTransaction(transactionDto.getId(), transactionDto, bankMemberDto);
+        Transaction updatedTransaction = transactionService.updateTransaction(transaction.getId(), transactionDto, bankMemberDto);
 
         // Then: 업데이트 결과 검증
         assertNotNull(updatedTransaction, "updated transaction should not be null");
@@ -124,6 +136,10 @@ class TransactionServiceImplTest {
     @Test
     @Transactional
     void deleteTransaction() {
+        transactionDto.setBankMemberId(bankMemberDto.getId());
+        Transaction transaction = transactionService.createTransaction(transactionDto);
+
+        transactionDto.setId(transaction.getId());
         transactionService.deleteTransaction(transactionDto, bankMemberDto);
 
         boolean exists = transactionRepository.existsById(transactionDto.getId());
