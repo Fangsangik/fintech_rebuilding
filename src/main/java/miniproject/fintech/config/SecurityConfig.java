@@ -41,8 +41,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(UserDetailsService userDetailsService) {
-        return new JwtAuthenticationFilter(jwtTokenUtil, userDetailsService); // 생성자 주입으로 필터 생성
+    public JwtAuthenticationFilter jwtAuthenticationFilter(CustomUserDetailsService customUserDetailsService) {
+        return new JwtAuthenticationFilter(jwtTokenUtil, customUserDetailsService); // 생성자 주입으로 필터 생성
     }
 
     @Bean
