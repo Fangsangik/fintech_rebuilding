@@ -2,6 +2,8 @@ package miniproject.fintech.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -43,4 +45,19 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
+
+    //Spring Security의 StrictHttpFirewall이 요청 URL에 포함된 잠재적으로 악의적인 문자열 %0A
+    // (URL 인코딩된 줄 바꿈 문자)을 감지하고 해당 요청을 차단
+    @Bean
+    public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
+        StrictHttpFirewall firewall = new StrictHttpFirewall();
+        firewall.setAllowUrlEncodedPercent(true); // % 문자를 허용
+        firewall.setAllowUrlEncodedSlash(true); // 슬래시(/) 문자를 허용
+        firewall.setAllowUrlEncodedDoubleSlash(true); // 이중 슬래시(//) 허용
+        firewall.setAllowBackSlash(true); // 역슬래시(\) 허용
+        firewall.setAllowSemicolon(true); // 세미콜론(;) 허용
+        firewall.setAllowUrlEncodedPeriod(true); // 점(.) 허용
+        return firewall;
+    }
+
 }
