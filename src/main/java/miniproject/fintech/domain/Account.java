@@ -38,8 +38,5 @@ public class Account {
     private List<Transfer> sentTransfers = new ArrayList<>();
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Transfer> receivedTransfers = new ArrayList<>();
-
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions = new ArrayList<>();
 }
