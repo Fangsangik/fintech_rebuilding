@@ -19,9 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static miniproject.fintech.type.ErrorType.*;
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @Slf4j
 @Service
@@ -37,7 +39,7 @@ public class AdminService {
     private final EntityConverter entityConverter;
 
     @Transactional(readOnly = true)
-    public List<BankMember> getAllBankMembers(int pageNum, int pageSize) {
+    public List<BankMemberDto> getAllBankMembers(int pageNum, int pageSize) {
         log.info("모든 사용자 조회 시작");
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<BankMember> bankMemberPage = memberRepository.findAll(pageable);
@@ -48,22 +50,22 @@ public class AdminService {
 
         log.info("모든 사용자 조회 완료: 총 사용자 수 = {}", bankMemberPage.getTotalElements());
 
-        return entityConverter.convertToBankMemberList(bankMemberDtos);
+        return bankMemberDtos;
     }
 
     @Transactional
-    public BankMember toggleUserActivation(Long id, boolean isActive) {
-        BankMember bankMember = findBankMember(id);
+    public BankMemberDto toggleUserActivation(String userId, boolean isActive) {
+        BankMember bankMember = findBankMember(userId);
 
         bankMember.setActive(isActive);
         BankMember savedBankMember = memberRepository.save(bankMember);
-        log.info("사용자 활성화/비활성화 완료: 사용자 ID = {}, 활성 상태 = {}", id, isActive);
-        return savedBankMember;
+        log.info("사용자 활성화/비활성화 완료: 사용자 ID = {}, 활성 상태 = {}", userId, isActive);
+        return dtoConverter.convertToBankMemberDto(savedBankMember);
     }
 
     @Transactional
-    public BankMember updateUserDetails(Long id, BankMemberDto bankMemberDto) {
-        BankMember bankMember = findBankMember(id);
+    public BankMemberDto updateUserDetails(String userId, BankMemberDto bankMemberDto) {
+        BankMember bankMember = findBankMember(userId);
 
         if (bankMemberDto.getName() != null) bankMember.setName(bankMemberDto.getName());
         if (bankMemberDto.getEmail() != null) bankMember.setEmail(bankMemberDto.getEmail());
@@ -71,11 +73,11 @@ public class AdminService {
 
         BankMember updatedBankMember = memberRepository.save(bankMember);
         log.info("사용자 정보 수정 완료: 사용자 ID = {}", updatedBankMember.getId());
-        return updatedBankMember;
+        return converter.convertToBankMemberDto(updatedBankMember);
     }
 
     @Transactional(readOnly = true)
-    public List<Transaction> getAllTransactions(int pageNum, int pageSize) {
+    public List<TransactionDto> getAllTransactions(int pageNum, int pageSize) {
         log.info("모든 거래 조회 시작");
         // 페이징 정보를 설정
         Pageable pageable = PageRequest.of(pageNum, pageSize);
@@ -86,17 +88,17 @@ public class AdminService {
         log.info("모든 거래 조회 완료: 총 거래 수 = {}", transactionPage.getTotalElements());
 
         // 엔티티 리스트 반환
-        return transactionPage.getContent();  // Page 객체에서 거래 리스트를 직접 반환
+        return dtoConverter.convertToTransactionDtoList(transactionPage.getContent());  // Page 객체에서 거래 리스트를 직접 반환
     }
 
     @Transactional
-    public Admin updateAdmin(Long id, AdminDto adminDto) {
-        log.info("관리자 정보 수정 요청: 관리자 ID - {}", id);
+    public AdminDto updateAdmin(String adminId, AdminDto adminDto) {
+        log.info("관리자 정보 수정 요청: 관리자 ID - {}", adminId);
 
-        Admin admin = adminRepository.findById(id)
+        Admin admin = adminRepository.findByAdminId(adminId)
                 .orElseThrow(() -> new CustomError(ErrorType.ADMIN_NOT_FOUND));
 
-        validateAdmin(id);
+        validateAdmin(adminId);
 
         if (adminDto.getPassword() != null && !adminDto.getPassword().isEmpty()) {
             String encodedPassword = passwordEncoder.encode(adminDto.getPassword());
@@ -114,10 +116,10 @@ public class AdminService {
         Admin savedAdmin = adminRepository.save(admin);
         log.info("관리자 정보 수정 완료: 관리자 ID - {}", savedAdmin.getId());
 
-        return savedAdmin;
+        return dtoConverter.convertToAdminDto(savedAdmin);
     }
 
-    public void adminChangeUserPassword(Long adminId, Long userId, String newPassword) {
+    public void adminChangeUserPassword(String adminId, String userId, String newPassword) {
         log.info("관리자에 의한 사용자 비밀번호 변경 요청: 관리자 ID - {}, 사용자 ID - {}", adminId, userId);
 
         validateAdmin(adminId);
@@ -130,13 +132,13 @@ public class AdminService {
         log.info("비밀번호 변경 성공: 사용자 ID - {}", userId);
     }
 
-    private BankMember findBankMember(Long id) {
-        return memberRepository.findById(id)
+    private BankMember findBankMember(String userId) {
+        return memberRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomError(MEMBER_NOT_FOUND));
     }
 
-    private void validateAdmin(Long adminId) {
-        Admin admin = adminRepository.findById(adminId)
+    private void validateAdmin(String adminId) {
+        Admin admin = adminRepository.findByAdminId(adminId)
                 .orElseThrow(() -> new CustomError(ErrorType.ADMIN_NOT_FOUND));
 
         if (!admin.getRoles().contains("ADMIN")) {
@@ -147,10 +149,10 @@ public class AdminService {
         log.info("관리자 검증 성공: 관리자 ID - {}", adminId);
     }
 
-    public void changeAdminPassword(Long adminId, String newPassword) {
+    public void changeAdminPassword(String adminId, String newPassword) {
         log.info("관리자 비밀번호 변경 요청: 관리자 ID - {}", adminId);
 
-        Admin admin = adminRepository.findById(adminId)
+        Admin admin = adminRepository.findByAdminId(adminId)
                 .orElseThrow(() -> new CustomError(ErrorType.ADMIN_NOT_FOUND));
 
         String encodedPassword = passwordEncoder.encode(newPassword);
