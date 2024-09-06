@@ -114,14 +114,14 @@ public class AccountController {
 
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/delete/{id}")
-    @CacheEvict(value = "accountsCache", key = "#id") // 계좌 삭제 시 해당 계좌 캐시 무효화
-    public ResponseEntity<String> deleteAccount(@PathVariable Long id) {
+    @CacheEvict(value = "accountsCache", key = "#accountNumber") // 계좌 삭제 시 해당 계좌 캐시 무효화
+    public ResponseEntity<String> deleteAccount(@PathVariable String accountNumber) {
 
-        if (id == null) {
+        if (accountNumber == null) {
             throw new CustomError(ACCOUNT_NOT_FOUND);
         }
 
-        accountService.delete(id);
+        accountService.delete(accountNumber);
         return ResponseEntity.ok("계좌가 성공적으로 삭제되었습니다.");
     }
 
