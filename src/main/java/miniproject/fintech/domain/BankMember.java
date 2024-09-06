@@ -20,6 +20,9 @@ public class BankMember {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
+    private String userId;
+
     private String name;
     private int amount;
     private String email;
