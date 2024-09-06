@@ -13,6 +13,7 @@ import java.util.Set;
 public class AdminDto {
 
     private Long id;
+    private String adminId;
 
     private String name;
     private String password;
