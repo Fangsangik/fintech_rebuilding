@@ -1,5 +1,6 @@
 package miniproject.fintech.config;
 import lombok.extern.slf4j.Slf4j;
+import miniproject.fintech.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -52,7 +53,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/refresh-token").permitAll() // 리프레시 토큰 엔드포인트 인증 없이 접근 가능
                         .requestMatchers("/api/login", "/error", "register/create").permitAll() // 로그인과 회원가입 엔드포인트도 인증 없이 접근 가능
-                        .requestMatchers("/transfer/process", "/transaction/**", "/deposit/**", "/member/**", "/account/**")
+                        .requestMatchers("/transfer/**", "/transaction/**", "/deposit/**", "/member/**", "/account/**")
                         .permitAll()//.hasRole("USER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
