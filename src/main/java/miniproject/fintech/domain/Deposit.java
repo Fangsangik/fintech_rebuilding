@@ -26,6 +26,9 @@ public class Deposit {
     @JoinColumn(name = "account_id")
     private Account account;
 
+    private String sourceAccountNumber;
+    private String destinationAccountNumber;
+
     @Enumerated(EnumType.STRING)
     private DepositStatus depositStatus;
 
