@@ -23,7 +23,8 @@ public class DepositDto {
     private long depositAmount;
     private LocalDateTime depositAt;
 
-    private Long accountId;
+    private String sourceAccountNumber;
+    private String destinationAccountNumber;
 
     private DepositStatus depositStatus;
 
