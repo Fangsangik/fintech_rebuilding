@@ -60,9 +60,9 @@ public class JwtTokenUtil {
         }
 
         // 사용자 이름을 기반으로 JWT 토큰을 생성하는 메서드
-        public String generateToken (Long id){
+        public String generateToken (String userId){
             return Jwts.builder()
-                    .setSubject(id.toString())
+                    .setSubject(userId)
                     .setIssuedAt(new Date(System.currentTimeMillis()))
                     .setExpiration(new Date(System.currentTimeMillis() + expiration * 1000)) // 만료 시간 설정
                     .signWith(SignatureAlgorithm.HS512, secretKey)
@@ -70,9 +70,9 @@ public class JwtTokenUtil {
         }
 
         // 사용자 이름을 기반으로 리프레시 토큰을 생성하는 메서드
-        public String generateRefreshToken (Long id){
+        public String generateRefreshToken (String userId){
             return Jwts.builder()
-                    .setSubject(id.toString())
+                    .setSubject(userId)
                     .setIssuedAt(new Date(System.currentTimeMillis()))
                     .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_VALIDITY))
                     .signWith(SignatureAlgorithm.HS512, secretKey)
@@ -94,8 +94,8 @@ public class JwtTokenUtil {
 
 
     // 리프레시 토큰에서 사용자 ID를 추출하는 메서드
-        public Long getUserIdFromRefreshToken (String token){
+        public String getUserIdFromRefreshToken (String token){
             Claims claims = getAllClaimsFromToken(token);
-            return Long.parseLong(claims.getSubject());
+            return claims.getSubject();
         }
     }
