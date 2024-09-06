@@ -32,5 +32,9 @@ public class Deposit {
     @Enumerated(EnumType.STRING)
     private DepositStatus depositStatus;
 
+    @OneToOne
+    @JoinColumn(name = "transaction_id")
+    private Transaction transaction;  // 1:1 관계
+
     private String message;
 }
