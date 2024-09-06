@@ -6,11 +6,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import miniproject.fintech.service.CustomUserDetailsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,11 +22,11 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenUtil jwtTokenUtil;
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtTokenUtil jwtTokenUtil, CustomUserDetailsService customUserDetailsService) {
         this.jwtTokenUtil = jwtTokenUtil;
-        this.userDetailsService = userDetailsService;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Override
@@ -40,8 +42,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             if (jwtToken != null && jwtTokenUtil.validateToken(jwtToken)) {
-                String username = jwtTokenUtil.getUsernameFromToken(jwtToken);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                String userId = jwtTokenUtil.getUsernameFromToken(jwtToken);
+                UserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
@@ -54,6 +56,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             log.warn("JWT 토큰이 만료되었습니다. 만료된 토큰을 통해 새 토큰을 발급받을 수 있습니다.");
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write("JWT 토큰이 만료되었습니다. 새 토큰을 발급받으세요.");
+            return;
+        } catch (UsernameNotFoundException ex) {
+            log.error("사용자를 찾을 수 없습니다: {}", ex.getMessage());
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.getWriter().write("사용자를 찾을 수 없습니다: " + ex.getMessage());
             return;
         }
 
@@ -69,5 +76,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
-
-
