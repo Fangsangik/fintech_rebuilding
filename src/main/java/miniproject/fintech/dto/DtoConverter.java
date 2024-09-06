@@ -2,15 +2,24 @@ package miniproject.fintech.dto;
 
 import miniproject.fintech.domain.*;
 import miniproject.fintech.error.CustomError;
+import miniproject.fintech.repository.MemberRepository;
 import miniproject.fintech.type.ErrorType;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static miniproject.fintech.type.ErrorType.MEMBER_NOT_FOUND;
+
+
 @Component
 public class DtoConverter {
+
+    private final MemberRepository memberRepository;
+
+    public DtoConverter(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
+    }
 
     public AdminDto convertToAdminDto(Admin admin) {
         if (admin == null) {
@@ -19,6 +28,7 @@ public class DtoConverter {
 
         return AdminDto.builder()
                 .id(admin.getId())
+                .adminId(admin.getAdminId())
                 .password(admin.getPassword())
                 .name(admin.getName())
                 .email(admin.getEmail())
@@ -27,12 +37,15 @@ public class DtoConverter {
                 .build();
     }
 
-
-    // 엔티티를 DTO로 변환
     public AccountDto convertToAccountDto(Account account) {
         if (account == null) return null;
 
+        if (account.getId() == null) {
+            throw new CustomError(ErrorType.ACCOUNT_ID_NOT_FOUND);
+        }
+
         return AccountDto.builder()
+                .bankMemberId(account.getBankMember().getUserId())
                 .id(account.getId())
                 .name(account.getName())
                 .accountNumber(account.getAccountNumber())
@@ -47,6 +60,7 @@ public class DtoConverter {
         if (bankMember == null) return null;
 
         return BankMemberDto.builder()
+                .userId(bankMember.getUserId())
                 .id(bankMember.getId())
                 .name(bankMember.getName())
                 .amount(bankMember.getAmount())
@@ -55,6 +69,7 @@ public class DtoConverter {
                 .createdAt(bankMember.getCreatedAt())
                 .isActive(bankMember.isActive())
                 .roles(bankMember.getRoles())
+                .userId(bankMember.getUserId())
                 .deletedAt(bankMember.getDeletedAt())
                 .build();
     }
@@ -64,14 +79,14 @@ public class DtoConverter {
 
         return DepositDto.builder()
                 .id(deposit.getId())
-                .depositAmount(deposit.getDepositAmount())
+                .transactionId(deposit.getTransaction() != null ? deposit.getTransaction().getId() : null)  // Transaction ID 설정
                 .depositAt(deposit.getDepositAt())
-                .accountId(deposit.getAccount().getId())
+                .depositAmount(deposit.getDepositAmount())
+                .destinationAccountNumber(deposit.getDestinationAccountNumber())
+                .depositAt(deposit.getDepositAt())
                 .depositStatus(deposit.getDepositStatus())
                 .message(deposit.getMessage())
                 .build();
-
-
     }
 
     public List<DepositDto> convertToDepositDtoList(List<Deposit> deposits) {
@@ -83,11 +98,16 @@ public class DtoConverter {
     public TransactionDto convertToTransactionDto(Transaction transaction) {
         if (transaction == null) return null;
 
+        // Transaction 객체에서 userId를 가져옴 (이미 객체에 있음)
+        String bankMemberId = transaction.getBankMember().getUserId();
+
         return TransactionDto.builder()
-                .id(transaction.getBankMember().getId())
+                .id(transaction.getId())
+                .bankMemberId(bankMemberId)  // BankMember ID 설정
                 .transactionAmount(transaction.getTransactionAmount())
                 .transactedAt(transaction.getTransactedAt())
-                .sourceAccountId(transaction.getSourceAccountId())
+                .sourceAccountNumber(transaction.getSourceAccountNumber())
+                .destinationAccountNumber(transaction.getDestinationAccountNumber())
                 .curAmount(transaction.getCurAmount())
                 .transactionType(transaction.getTransactionType())
                 .transactionStatus(transaction.getTransactionStatus())
@@ -104,21 +124,18 @@ public class DtoConverter {
             throw new CustomError(ErrorType.TRANSFER_NOT_FOUND);
         }
 
-        Long sourceAccountId = transfer.getSourceAccount() != null ? transfer.getSourceAccount().getId() : null;
-        Long destinationAccountId = transfer.getDestinationAccount() != null ? transfer.getDestinationAccount().getId() : null;
-
         return TransferDto.builder()
                 .id(transfer.getId())
                 .transferAmount(transfer.getTransferAmount())
                 .transferAt(transfer.getTransferAt())
-                .sourceAccountId(sourceAccountId) // ID만 사용
-                .destinationAccountId(destinationAccountId) // ID만 사용
+                .sourceAccountNumber(transfer.getSourceAccountNumber())
+                .destinationAccountNumber(transfer.getDestinationAccountNumber())
                 .transferStatus(transfer.getTransferStatus())
+                .transactionId(transfer.getTransaction() != null ? transfer.getTransaction().getId() : null)  // Transaction ID 설정
                 .message(transfer.getMessage())
                 .build();
     }
 
-    // 엔티티 리스트를 DTO 리스트로 변환
     public List<AccountDto> convertToAccountDtoList(List<Account> accounts) {
         if (accounts == null || accounts.isEmpty()) return null;
 
@@ -143,3 +160,4 @@ public class DtoConverter {
                 .collect(Collectors.toList());
     }
 }
+
