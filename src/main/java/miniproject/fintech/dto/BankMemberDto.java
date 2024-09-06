@@ -21,7 +21,7 @@ import java.util.Set;
 public class BankMemberDto {
 
     private Long id;
-
+    private String userId;
     private String name;
     private int amount;
     private String email;
