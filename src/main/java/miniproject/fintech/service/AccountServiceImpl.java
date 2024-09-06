@@ -10,6 +10,7 @@ import miniproject.fintech.dto.DtoConverter;
 import miniproject.fintech.dto.EntityConverter;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.repository.AccountRepository;
+import miniproject.fintech.type.ErrorType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -139,7 +140,7 @@ public class AccountServiceImpl {
             throw new CustomError(ACCOUNT_DELETE_FAILED);
         }
 
-        log.info("계좌 삭제 성공: ID = {}", accountId);
+        log.info("계좌 삭제 성공: ID = {}", accountNumber);
     }
 
     // 계좌 업데이트 후 DTO 반환
@@ -152,13 +153,11 @@ public class AccountServiceImpl {
         existingAccount.setAccountNumber(updatedAccountDto.getAccountNumber());
         existingAccount.setAmount(updatedAccountDto.getAmount());
         existingAccount.setAccountStatus(updatedAccountDto.getAccountStatus());
-        existingAccount.setAccountStatus(updatedAccountDto.getAccountStatus());
         existingAccount.setName(updatedAccountDto.getName());
-
 
         Account savedAccount = accountRepository.save(existingAccount);
         log.info("계좌 업데이트 성공: {}", savedAccount);
-        return savedAccount;
+        return dtoConverter.convertToAccountDto(savedAccount);
     }
 
     private Account validationOfAccountNumber(String accountNumber) {
