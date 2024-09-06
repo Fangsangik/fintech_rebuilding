@@ -32,15 +32,15 @@ public class LoginService {
     private final Set<String> tokenBlacklist = new HashSet<>();
 
     public Optional<String> loginCheck(BankMemberDto bankMemberDto) {
-        Optional<BankMember> findMember = memberRepository.findById(bankMemberDto.getId());
+        Optional<BankMember> findMember = memberRepository.findByUserId(bankMemberDto.getUserId());
         if (findMember.isPresent() && passwordEncoder.matches(bankMemberDto.getPassword(), findMember.get().getPassword())) {
             // 비밀번호가 일치하면 성공
-            String jwtToken = jwtTokenUtil.generateToken(bankMemberDto.getId());
-            log.info("로그인 성공: ID={}", bankMemberDto.getId());
+            String jwtToken = jwtTokenUtil.generateToken(bankMemberDto.getUserId());
+            log.info("로그인 성공: ID={}", bankMemberDto.getUserId());
             return Optional.of(jwtToken);
         }
 
-        log.warn("로그인 실패: 사용자 ID {}의 인증에 실패했습니다.", bankMemberDto.getId());
+        log.warn("로그인 실패: 사용자 ID {}의 인증에 실패했습니다.", bankMemberDto.getUserId());
         return Optional.empty();
     }
 
@@ -66,14 +66,14 @@ public class LoginService {
         return tokenBlacklist.contains(token);
     }
 
-    public String generateRefreshToken(Long id) {
-        return jwtTokenUtil.generateToken(id);
+    public String generateRefreshToken(String userId) {
+        return jwtTokenUtil.generateToken(userId);
     }
 
     public Optional<String> refreshToken(String refreshToken) {
         if (jwtTokenUtil.validateToken(refreshToken)) {
-            Long id = jwtTokenUtil.getUserIdFromRefreshToken(refreshToken);
-            return Optional.of(generateRefreshToken(id));
+            String userIdFromRefreshToken = jwtTokenUtil.getUserIdFromRefreshToken(refreshToken);
+            return Optional.of(generateRefreshToken(userIdFromRefreshToken));
         }
 
         return Optional.empty();
