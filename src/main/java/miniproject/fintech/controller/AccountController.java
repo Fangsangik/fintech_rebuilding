@@ -115,7 +115,11 @@ public class AccountController {
     @DeleteMapping("/delete/{id}")
     @CacheEvict(value = "accountsCache", key = "#id") // 계좌 삭제 시 해당 계좌 캐시 무효화
     public ResponseEntity<String> deleteAccount(@PathVariable Long id) {
-        validation(id);  // 계좌 유효성 검증
+
+        if (id == null) {
+            throw new CustomError(ACCOUNT_NOT_FOUND);
+        }
+
         accountService.delete(id);
         return ResponseEntity.ok("계좌가 성공적으로 삭제되었습니다.");
     }
