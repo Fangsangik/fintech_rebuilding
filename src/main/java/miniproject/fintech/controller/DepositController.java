@@ -24,32 +24,29 @@ public class DepositController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/process")
     @CacheEvict(value = "depositCache", allEntries = true) // 입금 처리 시 캐시 무효화
-    public ResponseEntity<Deposit> processDeposit
-            (@RequestBody DepositDto depositDto) {
-        Deposit deposit = depositService.processDeposit(depositDto);
+    public ResponseEntity<DepositDto> processDeposit(@RequestBody DepositDto depositDto) {
+        log.debug("Received processDeposit request: {}", depositDto);
+        DepositDto deposit = depositService.processDeposit(depositDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(deposit);
     }
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/by-range-date")
     @Cacheable(value = "depositCache", key = "{#startDate, #endDate, #page, #size}")
-    public ResponseEntity<List<Deposit>> findDepositsByDateRange
-            (@RequestParam LocalDateTime startDate,
-             @RequestParam LocalDateTime endDate,
-             @RequestParam int page,
-             @RequestBody int size) {
-        List<Deposit> deposits = depositService
-                .findDepositsByDateRange(startDate, endDate, page, size);
-
+    public ResponseEntity<List<DepositDto>> findDepositsByDateRange(
+            @RequestParam LocalDateTime startDate,
+            @RequestParam LocalDateTime endDate,
+            @RequestParam int page,
+            @RequestParam int size) {
+        List<DepositDto> deposits = depositService.findDepositsByDateRange(startDate, endDate, page, size);
         return ResponseEntity.ok(deposits);
     }
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/by-account/{accountId}")
     @CacheEvict(value = "depositCache", allEntries = true) // 입금 후 모든 캐시 무효화
-    public ResponseEntity<List<Deposit>> findDepositsByAccountId
-            (@PathVariable Long accountId) {
-        List<Deposit> deposits = depositService.findDepositsByAccountId(accountId);
+    public ResponseEntity<List<DepositDto>> findDepositsByAccountId(@PathVariable Long accountId) {
+        List<DepositDto> deposits = depositService.findDepositsByAccountId(accountId);
         return ResponseEntity.ok(deposits);
     }
 }
