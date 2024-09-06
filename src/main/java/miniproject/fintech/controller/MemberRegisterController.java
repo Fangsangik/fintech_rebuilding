@@ -8,17 +8,16 @@ import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.service.MemoryMemberService;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Slf4j
 @RestController
 @RequestMapping("/register")
-@RequiredArgsConstructor
 public class MemberRegisterController {
 
     private final MemoryMemberService memberService;
@@ -30,11 +29,11 @@ public class MemberRegisterController {
 
     @PostMapping("/create")
     @CacheEvict(value = "register")
-    public ResponseEntity<BankMember> createMember(@Valid @RequestBody BankMemberDto bankMemberDto) throws CustomError {
-            log.info("회원 생성 요청 수신: {}", bankMemberDto);
+    public ResponseEntity<BankMemberDto> createMember(@Valid @RequestBody BankMemberDto bankMemberDto) throws CustomError {
+        log.info("회원 생성 요청 수신: {}", bankMemberDto);
 
         try {
-            BankMember newMember = memberService.createBankMember(bankMemberDto, "USER"); // 기본 역할로 USER 추가
+            BankMemberDto newMember = memberService.createBankMember(bankMemberDto, "USER"); // 기본 역할로 USER 추가
             log.info("회원 생성 성공: {}", newMember);
             return ResponseEntity.ok(newMember);
         } catch (CustomError e) {
