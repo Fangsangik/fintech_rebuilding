@@ -3,6 +3,7 @@ package miniproject.fintech.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.Deposit;
+import miniproject.fintech.dto.DepositDto;
 import miniproject.fintech.dto.TransferDto;
 import miniproject.fintech.type.TransferStatus;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class NotificationServiceImpl {
         }
     }
 
-    public void sendNotification(Deposit deposit) {
+    public void sendNotification(DepositDto deposit) {
         // Implement email or SMS notification logic here
         log.info("입금 알림: {}", deposit.getMessage());
     }
