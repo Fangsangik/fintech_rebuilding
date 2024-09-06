@@ -23,6 +23,11 @@ public class MemberRegisterController {
 
     private final MemoryMemberService memberService;
 
+    @Autowired
+    public MemberRegisterController(MemoryMemberService memberService) {
+        this.memberService = memberService;
+    }
+
     @PostMapping("/create")
     @CacheEvict(value = "register")
     public ResponseEntity<BankMember> createMember(@Valid @RequestBody BankMemberDto bankMemberDto) throws CustomError {
