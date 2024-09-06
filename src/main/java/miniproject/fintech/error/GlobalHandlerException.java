@@ -7,9 +7,12 @@ import miniproject.fintech.type.ErrorType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -64,6 +67,19 @@ public class GlobalHandlerException {
         log.error("지원되지 않는 HTTP 메서드 요청: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("Request method not supported");
     }
+
+    //Spring MVC에서 입력 값 유효성 검사를 수행할 때 발생하는 예외입니다.
+    // 특히, @Valid 또는 @Validated 애너테이션을 사용하여 DTO나 요청 바디의 유효성 검사를 진행
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        // BindingResult에서 모든 오류 가져오기
+        String errorMessage = ex.getBindingResult().getAllErrors().stream()
+                .map(error -> error.getDefaultMessage())  // 각 오류의 기본 메시지 가져오기
+                .collect(Collectors.joining(", "));  // 모든 오류 메시지를 ','로 구분하여 하나의 문자열로 결합
+        log.error("유효성 검사 실패: {}", errorMessage);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+    }
+
 
     private HttpStatus determineHttpStatus(ErrorType errorType) {
         return switch (errorType) {
