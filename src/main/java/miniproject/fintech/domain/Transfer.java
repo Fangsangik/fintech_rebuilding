@@ -22,18 +22,17 @@ public class Transfer {
     private LocalDateTime transferAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "source_account_id")
-    private Account sourceAccount;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "destination_account_id")
-    private Account destinationAccount;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     private Account account;
+
+    private String sourceAccountNumber;
+    private String destinationAccountNumber;
 
     @Enumerated(EnumType.STRING)
     private TransferStatus transferStatus;
+
+    @OneToOne
+    @JoinColumn(name = "transaction_id")
+    private Transaction transaction;  // 1:1 관계
 
     private String message;
 
