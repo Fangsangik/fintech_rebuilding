@@ -1,16 +1,17 @@
 package miniproject.fintech.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import miniproject.fintech.domain.Account;
 import miniproject.fintech.dto.AccountDto;
 import miniproject.fintech.dto.BankMemberDto;
 
 import miniproject.fintech.dto.CreateAccountRequest;
+import miniproject.fintech.dto.DtoConverter;
 import miniproject.fintech.error.CustomError;
 import miniproject.fintech.service.AccountServiceImpl;
 import miniproject.fintech.service.MemoryMemberService;
+import miniproject.fintech.type.ErrorType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,6 @@ import static miniproject.fintech.type.ErrorType.*;
 @Slf4j
 @RestController
 @RequestMapping("/account")
-@RequiredArgsConstructor
 public class AccountController {
 
     private final AccountServiceImpl accountService;
@@ -49,6 +49,7 @@ public class AccountController {
         return ResponseEntity.ok(accountBalance);
     }
 
+    //accountNumber로 수정
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/exists/{accountNumber}")
     @Cacheable(value = "accountsCache", key = "#accountNumber + '_exists'")
@@ -74,7 +75,6 @@ public class AccountController {
     @PostMapping("/create")
     @CacheEvict(value = "accountsCache", allEntries = true)
     public ResponseEntity<AccountDto> createAccount(@Valid @RequestBody CreateAccountRequest request) {
-        // Request 객체에서 필요한 정보 추출
         BankMemberDto bankMemberDto = request.getBankMemberDto();
         AccountDto accountDto = request.getAccountDto();
 
@@ -94,13 +94,14 @@ public class AccountController {
             throw new CustomError(ErrorType.MEMBER_EXIST);
         }
 
-        // BankMember 존재 확인 및 가져오기
-        memberService.findById(bankMemberDto.getId());
-
         // 계좌 생성
-        AccountDto createdAccountDto = accountService.createAccountForMember(accountDto, bankMemberDto.getId());
+        AccountDto createdAccountDto = accountService.createAccountForMember(accountDto, bankMemberDto.getUserId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAccountDto);
     }
+
+
+
+
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/update/{id}")
