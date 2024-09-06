@@ -29,7 +29,16 @@ public class AccountController {
 
     private final AccountServiceImpl accountService;
     private final MemoryMemberService memberService;
+    private final DtoConverter dtoConverter;
 
+    @Autowired
+    public AccountController(AccountServiceImpl accountService, MemoryMemberService memberService, DtoConverter dtoConverter) {
+        this.accountService = accountService;
+        this.memberService = memberService;
+        this.dtoConverter = dtoConverter;
+    }
+
+    //accountNumber로 수정
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{id}/balance")
     @Cacheable(value = "accountsCache", key = "#id + '_balance'")
