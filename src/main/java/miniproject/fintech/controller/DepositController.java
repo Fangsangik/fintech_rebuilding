@@ -1,9 +1,10 @@
 package miniproject.fintech.controller;
 
 import lombok.RequiredArgsConstructor;
-import miniproject.fintech.domain.Deposit;
+import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.dto.DepositDto;
 import miniproject.fintech.service.DepositServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
