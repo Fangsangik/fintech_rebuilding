@@ -78,12 +78,20 @@ public class AccountController {
         BankMemberDto bankMemberDto = request.getBankMemberDto();
         AccountDto accountDto = request.getAccountDto();
 
-        // 유효성 검사
-        if (bankMemberDto == null) {
-            throw new IllegalArgumentException("BankMemberDto cannot be null");
+        // userId 유효성 검사 추가
+        if (bankMemberDto == null || bankMemberDto.getUserId() == null || bankMemberDto.getUserId().isEmpty()) {
+            log.error("BankMemberDto의 userId가 null이거나 빈 값입니다.");
+            throw new CustomError(ErrorType.MEMBER_NOT_FOUND);
         }
-        if (accountDto == null) {
-            throw new IllegalArgumentException("AccountDto cannot be null");
+
+        log.info("userId {}에 대한 계좌 생성 요청 중...", bankMemberDto.getUserId());
+
+        try {
+            // 회원 생성 또는 업데이트
+            memberService.createOrUpdateBankMember(bankMemberDto);
+        } catch (Exception e) {
+            log.error("회원 생성 또는 업데이트 중 오류 발생", e);
+            throw new CustomError(ErrorType.MEMBER_EXIST);
         }
 
         // BankMember 존재 확인 및 가져오기
