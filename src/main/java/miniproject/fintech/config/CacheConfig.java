@@ -20,6 +20,6 @@ public class CacheConfig {
     @Bean
     public CacheManager cacheManager() {
         // 기본 메모리 내 캐시 매니저를 사용하여 "defaultCache"라는 이름의 캐시를 생성
-        return new ConcurrentMapCacheManager("MemberCache", "depositCache", "adminCache", "accountsCache", "transfersCache", "transactionsCache", "register");
+        return new ConcurrentMapCacheManager("MemberCache", "depositCache", "adminCache", "accountsCache", "transfersCache", "transactionCache", "register");
     }
 }
