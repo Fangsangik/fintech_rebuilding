@@ -26,6 +26,6 @@ public class AccountDto {
     private long amount;
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
-    private BankMember bankMember;
+    private String bankMemberId;
     private AccountStatus accountStatus;;
 }
