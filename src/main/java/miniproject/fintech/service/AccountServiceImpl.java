@@ -29,15 +29,16 @@ public class AccountServiceImpl {
     private final DtoConverter dtoConverter;
     private final EntityConverter entityConverter;
 
+    @Transactional(readOnly = true)
     // ID로 계좌 조회 후 DTO 반환
-    public Optional<AccountDto> findById(Long id) {
-        log.info("계좌 조회 요청: ID = {}", id);
-        Optional<Account> account = accountRepository.findById(id);
+    public Optional<AccountDto> findByAccountNumber(String accountNumber) {
+        log.info("계좌 조회 요청: ID = {}", accountNumber);
+        Optional<Account> account = accountRepository.findByAccountNumber(accountNumber);
         if (account.isPresent()) {
             log.info("계좌 조회 성공: {}", account.get());
             return Optional.of(dtoConverter.convertToAccountDto(account.get()));
         } else {
-            log.warn("계좌 조회 실패: ID = {}", id);
+            log.warn("계좌 조회 실패: ID = {}", accountNumber);
             return Optional.empty();
         }
     }
@@ -86,18 +87,18 @@ public class AccountServiceImpl {
 
     // 계좌 삭제
     @Transactional
-    public void delete(Long accountId) {
-        log.info("계좌 삭제 요청: ID = {}", accountId);
-        Account account = accountRepository.findById(accountId)
+    public void delete(String accountNumber) {
+        log.info("계좌 삭제 요청: ID = {}", accountNumber);
+        Account account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> {
-                    log.error("계좌 조회 실패: ID = {}", accountId);
+                    log.error("계좌 조회 실패: ID = {}", accountNumber);
                     return new CustomError(ACCOUNT_NOT_FOUND);
                 });
 
         accountRepository.delete(account);
 
-        if (accountRepository.existsById(accountId)) {
-            log.error("계좌 삭제 실패: ID = {}", accountId);
+        if (accountRepository.existsByAccountNumber(accountNumber)) {
+            log.error("계좌 삭제 실패: ID = {}", accountNumber);
             throw new CustomError(ACCOUNT_DELETE_FAILED);
         }
 
@@ -106,9 +107,9 @@ public class AccountServiceImpl {
 
     // 계좌 업데이트 후 DTO 반환
     @Transactional
-    public Account updateAccount(Long accountId, AccountDto updatedAccountDto) {
-        log.info("계좌 업데이트 요청: ID = {}, 업데이트 내용: {}", accountId, updatedAccountDto);
-        Account existingAccount = validationOfId(accountId);
+    public AccountDto updateAccount(String accountNumber, AccountDto updatedAccountDto) {
+        log.info("계좌 업데이트 요청: ID = {}, 업데이트 내용: {}", accountNumber, updatedAccountDto);
+        Account existingAccount = validationOfAccountNumber(accountNumber);
 
         // 업데이트된 정보를 사용하여 기존 계좌 업데이트
         existingAccount.setAccountNumber(updatedAccountDto.getAccountNumber());
@@ -123,30 +124,30 @@ public class AccountServiceImpl {
         return savedAccount;
     }
 
-    private Account validationOfId(Long accountId) {
-        if (accountId == null) {
+    private Account validationOfAccountNumber(String accountNumber) {
+        if (accountNumber == null) {
             log.error("계좌 ID가 null입니다.");
             throw new CustomError(ID_NULL);
         }
 
-        return accountRepository.findById(accountId)
+        return accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> {
-                    log.error("계좌 조회 실패: ID = {}", accountId);
+                    log.error("계좌 조회 실패: ID = {}", accountNumber);
                     return new CustomError(ACCOUNT_ID_NOT_FOUND);
                 });
     }
 
     // 계좌 잔액 조회
-    public long getAccountBalance(Long id) {
-        log.info("계좌 잔액 조회 요청: ID = {}", id);
-        Account account = accountRepository.findById(id)
+    public long getAccountBalance(String accountNumber) {
+        log.info("계좌 잔액 조회 요청: ID = {}", accountNumber);
+        Account account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> {
-                    log.error("계좌 조회 실패: ID = {}", id);
+                    log.error("계좌 조회 실패: ID = {}", accountNumber);
                     return new CustomError(ACCOUNT_ID_NOT_FOUND);
                 });
 
         long balance = account.getAmount();
-        log.info("계좌 잔액 조회 성공: ID = {}, 잔액 = {}", id, balance);
+        log.info("계좌 잔액 조회 성공: ID = {}, 잔액 = {}", accountNumber, balance);
         return balance;
     }
 
@@ -163,7 +164,7 @@ public class AccountServiceImpl {
     }
 
     // 계좌 존재 여부 확인
-    public boolean existsById(Long id) {
-        return accountRepository.existsById(id);
+    public boolean existsByAccountNumber(String accountNumber) {
+        return accountRepository.existsByAccountNumber(accountNumber);
     }
 }
