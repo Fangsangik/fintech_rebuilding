@@ -14,13 +14,19 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/deposit")
-@RequiredArgsConstructor
 public class DepositController {
 
     private final DepositServiceImpl depositService;
 
+    @Autowired
+    public DepositController(DepositServiceImpl depositService) {
+        this.depositService = depositService;
+    }
+
+    //TODO -> 비동기 처리 고려 @Async
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/process")
     @CacheEvict(value = "depositCache", allEntries = true) // 입금 처리 시 캐시 무효화
