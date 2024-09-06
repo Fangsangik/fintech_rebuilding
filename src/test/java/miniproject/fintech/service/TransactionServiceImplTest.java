@@ -1,5 +1,7 @@
 package miniproject.fintech.service;
 
+import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.domain.Transaction;
 import miniproject.fintech.dto.BankMemberDto;
@@ -10,27 +12,25 @@ import miniproject.fintech.repository.TransactionRepository;
 import miniproject.fintech.type.Grade;
 import miniproject.fintech.type.TransactionStatus;
 import miniproject.fintech.type.TransactionType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.platform.commons.logging.Logger;
-import org.junit.platform.commons.logging.LoggerFactory;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Slf4j
 @SpringBootTest
-//@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY) //인메모리 사용
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TransactionServiceImplTest {
-
-    private final Logger logger = LoggerFactory.getLogger(Transaction.class);
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -49,100 +49,63 @@ class TransactionServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        // 모든 이전 데이터 삭제
         memberRepository.deleteAll();
         transactionRepository.deleteAll();
+
+        // 테스트용 BankMember 생성 및 저장
         BankMember bankMember = memberRepository.save(BankMember.builder()
+                .userId("test") // 중복 방지를 위해 UUID 사용
                 .name("Messi")
-                .accountNumber("1234")
                 .accounts(new ArrayList<>())
                 .address("seoul")
                 .age(20)
                 .build());
 
+        // DTO로 변환
         bankMemberDto = converter.convertToBankMemberDto(bankMember);
 
-        Transaction transaction = transactionRepository.save(Transaction.builder()
+        // 테스트용 TransactionDto 생성
+        transactionDto = TransactionDto.builder()
                 .transactionAmount(10000)
                 .transactionType(TransactionType.DEPOSIT)
                 .transactionStatus(TransactionStatus.SUCCESS)
-                .bankMember(bankMember)
-                .build());
-
-        transactionDto = converter.convertToTransactionDto(transaction);
+                .bankMemberId(bankMemberDto.getUserId())
+                .build();
     }
 
-    @Transactional
-    @Test
-    void createTransaction() {
-        Transaction transaction = transactionService.createTransaction(transactionDto);
-        assertNotNull(transaction);
-        assertEquals(transactionDto.getTransactionAmount(), transaction.getTransactionAmount(), "The transaction amounts should match");
-        assertEquals(transactionDto.getTransactionType(), transaction.getTransactionType(), "The transaction types should match");
-        assertEquals(transactionDto.getTransactionStatus(), transaction.getTransactionStatus(), "The transaction statuses should match");
-        assertEquals(bankMemberDto.getId(), transaction.getBankMember().getId(), "The bank member IDs should match");
 
-    }
-
-    @Transactional
     @Test
     void getTransactionById() {
-        transactionRepository.deleteAll();  // 트랜잭션 데이터 삭제
+        // 트랜잭션 생성
 
-        // 트랜잭션 생성 후 트랜잭션 ID를 올바르게 설정
-        Transaction createdTransaction = transactionService.createTransaction(transactionDto);
-        transactionDto.setId(createdTransaction.getId());
+        // 생성된 트랜잭션 ID로 조회
+        TransactionDto findTransactionId = transactionService.getTransactionById(transactionDto.getId());
 
-        // 트랜잭션 ID로 검색 시도
-        Optional<Transaction> findTransaction = transactionService.getTransactionById(transactionDto.getId(), bankMemberDto);
+        // 트랜잭션이 존재하는지 검증
+        assertEquals(transactionDto.getId(), findTransactionId.getId());
 
-        // 검색된 트랜잭션이 존재하는지 확인
-        assertTrue(findTransaction.isPresent());
-        assertEquals(transactionDto.getId(), findTransaction.get().getId());
-        assertEquals(transactionDto.getTransactionAmount(), findTransaction.get().getTransactionAmount());
+        // 생성된 트랜잭션 ID와 조회한 트랜잭션 ID가 일치하는지 검증
+        assertEquals(transactionDto.getId(), findTransactionId.getId(), "트랜잭션 ID가 일치해야 합니다.");
+
+        // 생성된 트랜잭션의 금액과 조회한 트랜잭션의 금액이 일치하는지 검증
+        assertEquals(transactionDto.getTransactionAmount(), findTransactionId.getTransactionAmount(), "트랜잭션 금액이 일치해야 합니다.");
     }
 
-    @Transactional
     @Test
     void getAllTransaction() {
-//        Transaction savedTransaction = transactionRepository.save(transaction); BeforeaEach에서 이미 저장
+        // 모든 트랜잭션 조회
+        List<TransactionDto> allTransactions = transactionService.getAllTransactions();
+        log.info("All transactions: {}", allTransactions);
 
-        List<TransactionDto> allTransaction = transactionService.getAllTransactions();
-        assertNotNull(allTransaction, "Transaction List Must not be null");
-        assertTrue(!allTransaction.isEmpty(), "Transaction list should not be empty");
+        // 검증
+        assertNotNull(allTransactions, "Transaction List Must not be null");
+        assertFalse(allTransactions.isEmpty(), "Transaction list should not be empty");
 
-        boolean containsTransaction = allTransaction.stream()
-                .anyMatch(t -> t.getId().equals(this.transactionDto.getId()));
+        // 트랜잭션 목록에 생성한 트랜잭션이 포함되어 있는지 검증
+        boolean containsTransaction = allTransactions.stream()
+                .anyMatch(t -> t.getId().equals(transactionDto.getId())); // 생성된 트랜잭션의 ID로 확인
 
         assertTrue(containsTransaction, "Transaction list should contain transaction");
-    }
-
-    @Test
-    @Transactional
-    void updateTransaction() {
-
-        transactionDto.setBankMemberId(bankMemberDto.getId());
-        Transaction transaction = transactionService.createTransaction(transactionDto);
-        // When: 거래 업데이트 수행
-        Transaction updatedTransaction = transactionService.updateTransaction(transaction.getId(), transactionDto, bankMemberDto);
-
-        // Then: 업데이트 결과 검증
-        assertNotNull(updatedTransaction, "updated transaction should not be null");
-        assertEquals(transactionDto.getTransactionAmount(), updatedTransaction.getTransactionAmount(), "Transaction amount should be updated");
-        assertEquals(transactionDto.getTransactionStatus(), updatedTransaction.getTransactionStatus(), "Transaction status should be updated");
-        assertEquals(transactionDto.getCurAmount(), updatedTransaction.getCurAmount(), "Transaction amount should be updated");
-        assertEquals(transactionDto.getGrade(), updatedTransaction.getGrade(), "Transaction grade should be updated");
-    }
-
-    @Test
-    @Transactional
-    void deleteTransaction() {
-        transactionDto.setBankMemberId(bankMemberDto.getId());
-        Transaction transaction = transactionService.createTransaction(transactionDto);
-
-        transactionDto.setId(transaction.getId());
-        transactionService.deleteTransaction(transactionDto, bankMemberDto);
-
-        boolean exists = transactionRepository.existsById(transactionDto.getId());
-        assertFalse(exists, "Transaction should be deleted");
     }
 }

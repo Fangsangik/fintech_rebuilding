@@ -3,13 +3,20 @@ package miniproject.fintech.service;
 import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.repository.MemberRepository;
 import miniproject.fintech.type.Grade;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+
 class DiscountServiceTest {
 
     @Autowired
@@ -22,6 +29,7 @@ class DiscountServiceTest {
     void discount() {
         // given
         BankMember bankMember = BankMember.builder()
+                .userId("test" + UUID.randomUUID())
                 .grade(Grade.VIP) // Grade.VIP로 설정
                 .amount(2000)
                 .password("password") // 비밀번호 설정
@@ -31,7 +39,7 @@ class DiscountServiceTest {
         BankMember savedMember = memberRepository.save(bankMember);
 
         // when
-        discountService.applyDiscount(savedMember.getId(), savedMember.getPassword());
+        discountService.applyDiscount(savedMember.getUserId(), savedMember.getPassword());
 
         // then
         // 업데이트된 bankMember를 가져옵니다.
