@@ -40,39 +40,39 @@ public class AccountController {
 
     //accountNumber로 수정
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/{id}/balance")
-    @Cacheable(value = "accountsCache", key = "#id + '_balance'")
-    public ResponseEntity<Long> getBalance(@PathVariable("id") Long id) {
-        log.info("계좌 잔액 조회 요청 수신: ID={}", id);
-        long accountBalance = accountService.getAccountBalance(id);
-        log.info("계좌 잔액 조회 성공: ID={}, 잔액={}", id, accountBalance);
+    @GetMapping("/{accountNumber}/balance")
+    @Cacheable(value = "accountsCache", key = "#accountNumber + '_balance'")
+    public ResponseEntity<Long> getBalance(@PathVariable String accountNumber) {
+        log.info("계좌 잔액 조회 요청 수신: ID={}", accountNumber);
+        long accountBalance = accountService.getAccountBalance(accountNumber);
+        log.info("계좌 잔액 조회 성공: ID={}, 잔액={}", accountNumber, accountBalance);
         return ResponseEntity.ok(accountBalance);
     }
 
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/exists/{id}")
-    @Cacheable(value = "accountsCache", key = "#id + '_exists'")
-    public ResponseEntity<Boolean> exists(@PathVariable("id") Long id) {
-        log.info("계좌 존재 여부 확인 요청 수신: ID={}", id);
+    @GetMapping("/exists/{accountNumber}")
+    @Cacheable(value = "accountsCache", key = "#accountNumber + '_exists'")
+    public ResponseEntity<Boolean> exists(@PathVariable String accountNumber) {
+        log.info("계좌 존재 여부 확인 요청 수신: ID={}", accountNumber);
 
-        boolean exists = accountService.existsById(id);
-        log.info("계좌 존재 여부 확인 결과: ID={}, 존재 여부: {}", id, exists);
+        boolean exists = accountService.existsByAccountNumber(accountNumber);
+        log.info("계좌 존재 여부 확인 결과: ID={}, 존재 여부: {}", accountNumber, exists);
 
         return ResponseEntity.ok(exists);
     }
 
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/{id}")
-    @Cacheable(value = "accountsCache", key = "#id")
-    public ResponseEntity<AccountDto> getAccountById(@PathVariable Long id) {
-        AccountDto accountDto = accountService.findById(id)
+    @GetMapping("/accountNumber")
+    @Cacheable(value = "accountsCache", key = "#accountNumber")
+    public ResponseEntity<AccountDto> getAccountByAccountNumber(@RequestParam String accountNumber) {
+        AccountDto accountDto = accountService.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new CustomError(ACCOUNT_NOT_FOUND));
         return ResponseEntity.ok(accountDto);
     }
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/create")
-    @CacheEvict(value = "accountsCache", allEntries = true) // 계좌 생성 시 캐시 무효화
+    @CacheEvict(value = "accountsCache", allEntries = true)
     public ResponseEntity<AccountDto> createAccount(@Valid @RequestBody CreateAccountRequest request) {
         // Request 객체에서 필요한 정보 추출
         BankMemberDto bankMemberDto = request.getBankMemberDto();
@@ -97,9 +97,9 @@ public class AccountController {
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/update/{id}")
     @CacheEvict(value = "accountsCache", key = "#id") // 계좌 업데이트 시 해당 계좌 캐시 무효화
-    public ResponseEntity<Account> updateAccount(@PathVariable Long id, @Valid @RequestBody AccountDto accountDto) {
-        validation(id);  // 계좌 유효성 검증
-        Account updatedAccountDto = accountService.updateAccount(id, accountDto);
+    public ResponseEntity<AccountDto> updateAccount(@Valid @RequestBody AccountDto accountDto) {
+        validation(accountDto.getAccountNumber());  // 계좌 유효성 검증
+        AccountDto updatedAccountDto = accountService.updateAccount(accountDto.getAccountNumber(), accountDto);
         return ResponseEntity.ok(updatedAccountDto);
     }
 
@@ -121,8 +121,8 @@ public class AccountController {
     }
 
     // 계좌 유효성 검증
-    private AccountDto validation(Long id) {
-        return accountService.findById(id)
+    private AccountDto validation(String accountNumber) {
+        return accountService.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new CustomError(ACCOUNT_NOT_FOUND));
     }
 }
