@@ -26,6 +26,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.memberRepository = memberRepository;
         this.adminRepository = adminRepository;
     }
+
+    //사용자 정보 조회
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
         if (userId == null || userId.trim().isEmpty()) {
@@ -41,7 +43,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
             return User.withUsername(member.getUserId())
                     .password(member.getPassword())
-                    .authorities("USER")
+                    .authorities("ROLE_USER")
                     .build();
         }
 
@@ -53,7 +55,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
             return User.withUsername(admin.getAdminId())
                     .password(admin.getPassword())
-                    .authorities("ADMIN")
+                    .authorities("ROLE_ADMIN")
                     .build();
         }
 
