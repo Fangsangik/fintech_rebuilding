@@ -1,19 +1,27 @@
 package miniproject.fintech.config;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.service.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.io.IOException;
 
 
 @Slf4j
@@ -49,19 +57,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // CSRF 비활성화
+                .csrf(csrf -> csrf.disable()) //jwt 토큰 발행시에는 disable 해도 괜찮다.
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/refresh-token").permitAll() // 리프레시 토큰 엔드포인트 인증 없이 접근 가능
-                        .requestMatchers("/api/login", "/error", "register/create").permitAll() // 로그인과 회원가입 엔드포인트도 인증 없이 접근 가능
-                        .requestMatchers("/transfer/**", "/transaction/**", "/deposit/**", "/member/**", "/account/**")
-                        .permitAll()//.hasRole("USER")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/login", "/error", "/register/create").permitAll() // 로그인과 회원가입 엔드포인트도 인증 없이 접근 가능
+                        .requestMatchers("/transfer/**", "/transaction/**", "/deposit/**", "/member/{userId}", "/account/**")
+                        .hasAuthority("ROLE_USER")
+                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션을 상태 없이 관리
 
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 추가
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // JWT 필터 추가
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // 세션을 상태 없이 관리
+
 
         return http.build();
     }
