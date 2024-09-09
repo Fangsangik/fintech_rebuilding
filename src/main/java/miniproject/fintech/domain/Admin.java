@@ -3,9 +3,6 @@ package miniproject.fintech.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Entity
 @Getter
 @Setter
@@ -27,4 +24,5 @@ public class Admin {
     private boolean superAdmin;
 
     private String roles;
+
 }
