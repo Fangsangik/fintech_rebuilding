@@ -4,11 +4,15 @@ import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import miniproject.fintech.domain.BankMember;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -75,6 +79,22 @@ public class JwtTokenUtil {
                     .setSubject(userId)
                     .setIssuedAt(new Date(System.currentTimeMillis()))
                     .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_VALIDITY))
+                    .signWith(SignatureAlgorithm.HS512, secretKey)
+                    .compact();
+        }
+
+        public String generateToken(UserDetails userDetails) {
+            Map<String, Object> claims = new HashMap<>();
+
+            claims.put("roles", userDetails.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toList()));
+
+            return Jwts.builder()
+                    .setClaims(claims)
+                    .setSubject(userDetails.getUsername())
+                    .setIssuedAt(new Date(System.currentTimeMillis()))
+                    .setExpiration(new Date(System.currentTimeMillis()))
                     .signWith(SignatureAlgorithm.HS512, secretKey)
                     .compact();
         }
