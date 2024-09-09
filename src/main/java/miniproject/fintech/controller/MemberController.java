@@ -42,7 +42,7 @@ public class MemberController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/exists/{id}")
-    public ResponseEntity<Boolean> checkMemberExists(@RequestParam String userId) {
+    public ResponseEntity<Boolean> checkMemberExists(@PathVariable String userId) {
         log.info("회원 존재 여부 확인 요청 수신: ID={}", userId);
 
         boolean exists = memberService.existsById(userId);
@@ -65,9 +65,9 @@ public class MemberController {
 
     // ID로 회원 조회
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/{id}")
+    @GetMapping("/{userId}")
     @Cacheable(value = "MemberCache", key = "#userId") // ID로 회원 조회 시 캐싱
-    public ResponseEntity<Optional<BankMember>> getMemberById(@RequestParam String userId) {
+    public ResponseEntity<Optional<BankMember>> getMemberById(@PathVariable String userId) {
         log.info("회원 정보 요청 수신: ID={}", userId);
 
         Optional<BankMember> findMemberDto = memberService.findByUserId(userId);
@@ -77,9 +77,9 @@ public class MemberController {
     }
 
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/{id}/accounts")
+    @GetMapping("/{userId}/accounts")
     @Cacheable(value = "accountsCache", key = "#id") // 회원 계좌 정보 조회 시 캐싱
-    public ResponseEntity<List<AccountDto>> getAccountsByMemberId(@RequestParam String userId) {
+    public ResponseEntity<List<AccountDto>> getAccountsByMemberId(@PathVariable String userId) {
         log.info("회원 계좌 조회 요청 수신: ID={}", userId);
 
         List<AccountDto> accounts = memberService.findAccountByMemberId(userId);
@@ -90,7 +90,7 @@ public class MemberController {
 
     // 회원 정보 업데이트
     @PreAuthorize("hasRole('USER')")
-    @PostMapping("/update/{id}")
+    @PostMapping("/update/{userId}")
     @CacheEvict(value = "MemberCache", key = "#id") // 회원 정보 업데이트 시 캐시 무효화
     public ResponseEntity<BankMemberDto> updateBankMember(
             @RequestParam String userId,
@@ -105,7 +105,7 @@ public class MemberController {
 
     // 회원 삭제
     @PreAuthorize("hasRole('USER')")
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/delete/{userId}")
     @CacheEvict(value = "MemberCache", key = "#id") // 회원 삭제 시 캐시 무효화
     public ResponseEntity<String> deleteBankMember(
             @RequestParam String userId,
