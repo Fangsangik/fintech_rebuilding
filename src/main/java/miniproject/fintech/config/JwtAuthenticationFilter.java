@@ -34,9 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwtToken = extractJwtFromRequest(request);
         String requestURI = request.getRequestURI();
 
-        // /api/refresh-token 경로에 대해 JWT 검증을 건너뛴다
-        if ("/api/refresh-token".equals(requestURI)) {
-            filterChain.doFilter(request, response); // 다음 필터로 진행
+        if ("/api/login".equals(requestURI) || "/api/refresh-token".equals(requestURI) || "/register/create".equals(requestURI)) {
+            filterChain.doFilter(request, response);
             return;
         }
 
@@ -51,6 +50,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else if (jwtToken == null) {
+                log.warn("Authorization header missing");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("Authorization header missing");
+                return;
             }
         } catch (ExpiredJwtException ex) {
             log.warn("JWT 토큰이 만료되었습니다. 만료된 토큰을 통해 새 토큰을 발급받을 수 있습니다.");
