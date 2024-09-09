@@ -46,4 +46,5 @@ public class BankMember {
 
     @OneToMany(mappedBy = "bankMember", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transaction> transactions = new ArrayList<>(); // 거래 리스트
+
 }
