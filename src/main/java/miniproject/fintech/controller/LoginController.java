@@ -26,9 +26,15 @@ public class LoginController {
 
     private final LoginService loginService;
 
+
     @Autowired
     public LoginController(LoginService loginService) {
         this.loginService = loginService;
+    }
+
+    @GetMapping("/login")
+    public String login() {
+        return "/login";
     }
 
     @PostMapping("/login")
