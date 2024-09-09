@@ -9,6 +9,11 @@ import miniproject.fintech.domain.BankMember;
 import miniproject.fintech.dto.BankMemberDto;
 import miniproject.fintech.dto.DtoConverter;
 import miniproject.fintech.repository.MemberRepository;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +35,7 @@ public class LoginService {
 
     // 블랙리스트를 메모리 기반으로 구현 (실제 사용 시 Redis 등 외부 저장소 사용 권장)
     private final Set<String> tokenBlacklist = new HashSet<>();
+    private final AuthenticationManager authenticationManager;
 
     public Optional<String> loginCheck(BankMemberDto bankMemberDto) {
         Optional<BankMember> findMember = memberRepository.findByUserId(bankMemberDto.getUserId());
