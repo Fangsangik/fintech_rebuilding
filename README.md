@@ -47,8 +47,8 @@ findById의 경우 단순 조회이기 때문에 Transaction 부분에 readOnly 
 - api test 진행시 account를 생성할때 bankMemberId가 null로 계속 적으로 처리되는 것 확인 -> dto 부분에 bankMemberId 값을 설정을 안해즘 -> 삽질
 
 - 추후 보안할 내용
-  -> 거래 진행시, 비밀번호 인증 요구, sms 요청 로직 작성 해보기, springSecurity 권한 설정 문제 해결하기 
+  -> 거래 진행시, 비밀번호 인증 요구, sms 요청 로직 작성 해보기, springSecurity 권한 설정 문제 해결하기 (해결?) 
 
 ## 추가로 구현해보고 싶은 기능 (다음 프로젝트에...)
-- SpringSecurity로 login service 만들어보기 
+- SpringSecurity로 login service 만들어보기 (Success)
 - Controller 부분 redirect 설정해보기
