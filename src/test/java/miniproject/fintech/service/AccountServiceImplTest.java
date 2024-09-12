@@ -163,8 +163,8 @@ class AccountServiceImplTest {
 
     @Test
     void delete() {
-        assertThat(accountRepository.findById(accountDto.getId())).isPresent();
-        accountService.delete(accountDto.getId());
+        assertThat(accountRepository.findByAccountNumber(accountDto.getAccountNumber())).isPresent();
+        accountService.delete(accountDto.getAccountNumber());
 
         // Then: 계좌가 삭제되었는지 확인
         Optional<Account> deletedAccount = accountRepository.findById(accountDto.getId());
