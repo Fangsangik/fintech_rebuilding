@@ -42,10 +42,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
+    public AuthenticationManager authenticationManager(HttpSecurity http, CustomUserDetailsService customUserDetailsService) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder =
                 http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+        authenticationManagerBuilder.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder());
         return authenticationManagerBuilder.build();
     }
 
@@ -61,8 +61,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/refresh-token").permitAll() // 리프레시 토큰 엔드포인트 인증 없이 접근 가능
-                        .requestMatchers("/api/login", "/error", "/register/create").permitAll() // 로그인과 회원가입 엔드포인트도 인증 없이 접근 가능
-                        .requestMatchers("/transfer/**", "/transaction/**", "/deposit/**", "/member/{userId}", "/account/**")
+                        .requestMatchers("/api/login", "/error", "/register/create", "/home/**").permitAll() // 로그인과 회원가입 엔드포인트도 인증 없이 접근 가능
+                        .requestMatchers("/transfer/**", "/transaction/**", "/deposit/**", "/member/**", "/account/**")
                         .hasAuthority("ROLE_USER")
                         .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
