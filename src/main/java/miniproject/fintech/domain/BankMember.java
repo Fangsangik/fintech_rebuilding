@@ -1,5 +1,6 @@
 package miniproject.fintech.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import miniproject.fintech.type.Grade;
@@ -42,6 +43,7 @@ public class BankMember {
     private boolean isActive;
 
     @OneToMany(mappedBy = "bankMember", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // 순환 참조 "관리"
     private List<Account> accounts = new ArrayList<>(); // 계좌 리스트
 
     @OneToMany(mappedBy = "bankMember", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
