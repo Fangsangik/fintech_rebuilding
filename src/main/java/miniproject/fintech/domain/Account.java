@@ -1,5 +1,6 @@
 package miniproject.fintech.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import miniproject.fintech.type.AccountStatus;
@@ -26,6 +27,7 @@ public class Account {
 
     @ManyToOne
     @JoinColumn(name = "bank_member_id")
+    @JsonBackReference //역방향 쪽
     private BankMember bankMember;
 
     @Enumerated(EnumType.STRING)
