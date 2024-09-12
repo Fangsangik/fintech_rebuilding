@@ -63,9 +63,9 @@ public class AccountController {
     }
 
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/accountNumber")
+    @GetMapping("/{accountNumber}")
     @Cacheable(value = "accountsCache", key = "#accountNumber")
-    public ResponseEntity<AccountDto> getAccountByAccountNumber(@RequestParam String accountNumber) {
+    public ResponseEntity<AccountDto> getAccountByAccountNumber(@PathVariable String accountNumber) {
         AccountDto accountDto = accountService.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new CustomError(ACCOUNT_NOT_FOUND));
         return ResponseEntity.ok(accountDto);
@@ -104,16 +104,20 @@ public class AccountController {
 
 
     @PreAuthorize("hasRole('USER')")
-    @PostMapping("/update/{id}")
-    @CacheEvict(value = "accountsCache", key = "#id") // 계좌 업데이트 시 해당 계좌 캐시 무효화
-    public ResponseEntity<AccountDto> updateAccount(@Valid @RequestBody AccountDto accountDto) {
-        validation(accountDto.getAccountNumber());  // 계좌 유효성 검증
-        AccountDto updatedAccountDto = accountService.updateAccount(accountDto.getAccountNumber(), accountDto);
+    @PostMapping("/update/{accountNumber}")
+    @CacheEvict(value = "accountsCache", key = "#accountNumber") // 계좌 업데이트 시 해당 계좌 캐시 무효화
+    public ResponseEntity<AccountDto> updateAccount(@Valid @PathVariable String accountNumber, @RequestBody AccountDto accountDto) {
+        if (!accountDto.getAccountNumber().equals(accountNumber)) {
+            throw new CustomError(ErrorType.INVALID_ACCOUNT_NUMBER);
+        }
+
+        validation(accountNumber);  // 계좌 유효성 검증
+        AccountDto updatedAccountDto = accountService.updateAccount(accountNumber, accountDto);
         return ResponseEntity.ok(updatedAccountDto);
     }
 
     @PreAuthorize("hasRole('USER')")
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/delete/{accountNumber}")
     @CacheEvict(value = "accountsCache", key = "#accountNumber") // 계좌 삭제 시 해당 계좌 캐시 무효화
     public ResponseEntity<String> deleteAccount(@PathVariable String accountNumber) {
 
