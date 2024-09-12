@@ -41,7 +41,7 @@ public class MemberController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/exists/{id}")
+    @GetMapping("/exists/{userId}")
     public ResponseEntity<Boolean> checkMemberExists(@PathVariable String userId) {
         log.info("회원 존재 여부 확인 요청 수신: ID={}", userId);
 
@@ -52,9 +52,11 @@ public class MemberController {
     }
 
     @PreAuthorize("hasRole('USER')")
-    @PostMapping("/change-password/{id}")
+    @PostMapping("/change-password/{userId}")
     @CacheEvict(value = "MemberCache", key = "#userId") // 비밀번호 변경 시 캐시 무효화
-    public ResponseEntity<String> changePassword(@RequestParam String userId, @RequestParam String oldPassword, @RequestParam String newPassword) {
+    public ResponseEntity<String> changePassword(@PathVariable String userId,
+                                                 @RequestParam String oldPassword,
+                                                 @RequestParam String newPassword) {
         log.info("회원 비밀번호 변경 요청 수신 : ID = {}", userId);
 
         memberService.userChangePassword(userId, oldPassword, newPassword);
@@ -63,22 +65,26 @@ public class MemberController {
         return ResponseEntity.ok("Password changed successfully");
     }
 
-    // ID로 회원 조회
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{userId}")
-    @Cacheable(value = "MemberCache", key = "#userId") // ID로 회원 조회 시 캐싱
+    @Cacheable(value = "MemberCache", key = "#userId")
     public ResponseEntity<Optional<BankMember>> getMemberById(@PathVariable String userId) {
         log.info("회원 정보 요청 수신: ID={}", userId);
 
         Optional<BankMember> findMemberDto = memberService.findByUserId(userId);
-        log.info("회원 정보 조회 성공: ID={}", userId);
+        log.info("회원 정보 조회 성공: ID={}, Member: {}", userId, findMemberDto);
+
+        if (findMemberDto.isEmpty()) {
+            log.warn("회원 정보를 찾을 수 없습니다: ID={}", userId);
+            return ResponseEntity.badRequest().build(); // BAD_REQUEST 명시적으로 반환
+        }
 
         return ResponseEntity.ok(findMemberDto);
     }
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/{userId}/accounts")
-    @Cacheable(value = "accountsCache", key = "#id") // 회원 계좌 정보 조회 시 캐싱
+    @Cacheable(value = "accountsCache", key = "#userId") // 회원 계좌 정보 조회 시 캐싱
     public ResponseEntity<List<AccountDto>> getAccountsByMemberId(@PathVariable String userId) {
         log.info("회원 계좌 조회 요청 수신: ID={}", userId);
 
@@ -91,10 +97,9 @@ public class MemberController {
     // 회원 정보 업데이트
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/update/{userId}")
-    @CacheEvict(value = "MemberCache", key = "#id") // 회원 정보 업데이트 시 캐시 무효화
-    public ResponseEntity<BankMemberDto> updateBankMember(
-            @RequestParam String userId,
-            @Valid @RequestBody BankMemberDto bankMemberDto) {
+    @CacheEvict(value = "MemberCache", key = "#userId") // 회원 정보 업데이트 시 캐시 무효화
+    public ResponseEntity<BankMemberDto> updateBankMember(@PathVariable String userId,
+                                                          @Valid @RequestBody BankMemberDto bankMemberDto) {
         log.info("회원 정보 업데이트 요청 수신: ID={}, 요청 데이터={}", userId, bankMemberDto);
 
         BankMemberDto updatedMemberDto = memberService.updateMember(userId, bankMemberDto);
@@ -106,10 +111,9 @@ public class MemberController {
     // 회원 삭제
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/delete/{userId}")
-    @CacheEvict(value = "MemberCache", key = "#id") // 회원 삭제 시 캐시 무효화
-    public ResponseEntity<String> deleteBankMember(
-            @RequestParam String userId,
-            @RequestParam String password) {
+    @CacheEvict(value = "MemberCache", key = "#userId") // 회원 삭제 시 캐시 무효화
+    public ResponseEntity<String> deleteBankMember(@PathVariable String userId,
+                                                   @RequestParam String password) {
         log.info("회원 삭제 요청 수신: ID={}", userId);
 
         memberService.deleteById(userId, password);
